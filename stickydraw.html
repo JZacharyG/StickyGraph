@@ -11,19 +11,38 @@
   cursor: move;
   fill: #000;
   stroke: #000;
-  stroke-width: 1.5px;
+  stroke-width: 3px;
 }
 
 .node.fixed {
 	stroke: #f00;
 }
 
-.drawingboard {
-	stroke: #000;
+.svg-container {
+    display: inline-block;
+    position: relative;
+    border: 3px solid #aaa;
+    width: 98%;
+    height: 85%; /* aspect ratio */
+    vertical-align: top;
+    overflow: hidden;
+}
+
+.svg-content-responsive {
+    display: inline-block;
+    position: absolute;
+    bottom: 2%;
+    left: 1%;
 }
 
 </style>
 <body>
+
+<form action="" onsubmit="return load_g6(this)&&false;">
+Graph6: <input type="text" name="g6" value="" size="30">
+<input type="submit" value="Draw!">
+</form>
+
 <script src="d3.min.js"></script>
 <script>
 
@@ -44,40 +63,20 @@ var force = d3.layout.force()
     .size([width, height])
     .on("tick", tick);
 
-var svg = d3.select("body").append("svg")
-	.classed("drawingboard", true)
-    .attr("width", width)
-    .attr("height", height);
+svg = d3.select("body")
+   .append("svg")
+   .classed("svg-container", true) //container class to make it responsive
+   //responsive SVG needs these 2 attributes and no width and height attr
+   .attr("preserveAspectRatio", "xMinYMin meet")
+   .attr("viewBox", "0 0 1300 700")
+   //class to make it responsive
+   .classed("svg-content-responsive", true); 
 
 var node = svg.selectAll(".node"),
     link = svg.selectAll(".link");
 
 var drag = force.drag()
 		.on("dragstart", dragstart);
-
-// 1. Add three nodes and three links.
-// setTimeout(function() {
-//   var a = {id: 0}, b = {id: 1}, c = {id: 2};
-//   nodes.push(a, b, c);
-//   links.push({source: nodes[0], target: nodes[1]}, {source: a, target: c}, {source: b, target: c});
-//   start();
-// }, 0);
-
-// 2. Remove node B and associated links.
-// setTimeout(function() {
-//   nodes.splice(1, 1); // remove b
-//   links.shift(); // remove a-b
-//   links.pop(); // remove b-c
-//   start();
-// }, 3000);
-
-// Add node B back.
-// setTimeout(function() {
-//   var a = nodes[0], b = {id: "b"}, c = nodes[1];
-//   nodes.push(b);
-//   links.push({source: a, target: b}, {source: b, target: c});
-//   start();
-// }, 6000);
 
 function dblclick(d) {
 	d3.select(this).classed("fixed", d.fixed = false);
@@ -173,8 +172,4 @@ function load_g6(form)
 
 </script>
 
-<form action="" onsubmit="return load_g6(this)&&false;">
-Graph6: <input type="text" name="g6" value=""><br>
-<input type="submit" value="Submit">
-</form>
 <body>
