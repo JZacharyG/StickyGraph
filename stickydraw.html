@@ -49,6 +49,12 @@
 	top:   20px;
 }
 
+#show-labels-form {
+	position:fixed;
+	bottom: 20px;
+	left: 20px;
+}
+
 .svg-container {
     display: inline-block;
     position: absolute;
@@ -68,6 +74,9 @@ Graph6: <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 <!-- <input type="button" onclick="save_image(this)" value="Save!"> -->
 </form>
 
+<form id="show-labels-form" action="">
+<input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels<br>
+</form>
 
 
 <script src="d3.min.js"></script>
@@ -144,6 +153,14 @@ function select_all()
 function select_none()
 {
 	svg.selectAll(".pinned").classed("pinned", false);
+}
+
+function check_show_labels()
+{
+	if (document.getElementById("show-labels-box").checked)
+		label.attr("visibility", "visible");
+	else
+		label.attr("visibility", "hidden");
 }
 
 function start()
@@ -249,7 +266,7 @@ function load_g6(form)
 	svg.selectAll(".pinned").classed("pinned", false);
 	svg.selectAll(".selected").classed("selected", false);
 	start();
-	
+	check_show_labels();
  	return false;
 }
 
