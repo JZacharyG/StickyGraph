@@ -15,17 +15,17 @@
 .node {
 	cursor: move;
 	fill: #000;
-	stroke: #000;
-	stroke-width: 8px;
-	r:6px;
+	stroke: #fff;
+	stroke-width: 2px;
+	r:9px;
 }
 
 .node.pinned {
-	fill: #f00;
+	stroke: #f00;
 }
 
 .node.selected {
-	fill: #fb0;
+	stroke: #fb0;
 	r:8px;
 	stroke-width:4px;
 }
@@ -63,6 +63,10 @@
     vertical-align: center;
 }
 
+.overlay {
+  fill: none;
+  pointer-events: all;
+}
 </style>
 <body>
 
@@ -75,7 +79,7 @@ Graph6: <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 </form>
 
 <form id="show-labels-form" action="">
-<input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels<br>
+<label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
 </form>
 
 
@@ -102,22 +106,35 @@ var force = d3.layout.force()
     .size([width, height])
     .on("tick", tick);
 
+var zoom = d3.behavior.zoom();
+
 var svg = d3.select("#container")
 	.append("svg")
-	.classed("svg-container", true) //container class to make it responsive
-	//responsive SVG needs these 2 attributes and no width and height attr
+	.classed("svg-container", true)
 	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", "0 0 1300 700")
+	.attr("viewBox", "0 0 "+width+" "+height)
 	.attr("id", "drawing-board");
-	//class to make it responsive
 
-svg.append("g").attr("id", "links");
-svg.append("g").attr("id", "nodes");
-svg.append("g").attr("id", "labels");
+svg.append("rect")
+    .attr("class", "overlay")
+    .attr("width", 100*width)
+    .attr("height", 100*height)
+    .call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
+
+var zoomable = svg.append("g");
+    
+
+zoomable.append("g").attr("id", "links");
+zoomable.append("g").attr("id", "nodes");
+zoomable.append("g").attr("id", "labels");
 
 var node = svg.select("#nodes").selectAll(".node"),
     link = svg.select("#links").selectAll(".link"),
     label = svg.select("#labels").selectAll(".label");
+
+function zoomHandler() {
+  zoomable.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
+}
 
 function getRandom(min, max)
 {
@@ -127,12 +144,14 @@ function getRandom(min, max)
 var drag = force.drag()
 		.on("dragstart", pin);
 
-function unpin(d) {
+function unpin(d)
+{
 	d3.select(this).classed("pinned", d.fixed = false);
 	force.resume();
 }
 
-function pin(d) {
+function pin(d)
+{
 	d3.select(this).classed("pinned", d.fixed = true);
 }
 
@@ -163,6 +182,24 @@ function check_show_labels()
 		label.attr("visibility", "hidden");
 }
 
+function clear_graph()
+{
+	zoom.scale(1);
+	zoom.translate([0,0]);
+	zoomable.attr("transform", "");
+	links.length=0;
+	nodes.length=0;
+	
+	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
+	link.exit().remove();
+	
+	node = node.data(force.nodes(), function(d) { return d.id;});
+	node.exit().remove();
+	
+	label = label.data(force.nodes(), function(d) { return d.id;});
+	label.exit().remove();
+}
+
 function start()
 {
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
@@ -186,7 +223,7 @@ function start()
 		.classed("label", true)
 		.text(function(d) { return d.id;});
 	label.exit().remove();
-	
+	check_show_labels();
 	force.start();
 }
 
@@ -212,7 +249,7 @@ function tick()
 
 function load_g6(form)
 {
-	//document.getElementById("graph-input").focus();
+	clear_graph();
 	var g6string=form.g6.value;
 	var g6i=0;
 	var i, j, k, x;
@@ -224,8 +261,7 @@ function load_g6(form)
 // 	}
 	
 	var nv = g6string.charCodeAt(g6i) - 63;
-	nodes.length=0;
-	links.length=0;
+
 
 	for (i=0; i<nv; i++)
 	{
@@ -263,13 +299,10 @@ function load_g6(form)
 			x <<= 1;
 		}
 	}
-	svg.selectAll(".pinned").classed("pinned", false);
-	svg.selectAll(".selected").classed("selected", false);
+	
 	start();
-	check_show_labels();
  	return false;
 }
-
 
 </script>
 
