@@ -7,9 +7,37 @@
   stroke-width: 3px;
 }
 
+.link.red {
+	stroke: #f00;
+}
+
+.link.orange {
+	stroke: #f90;
+}
+
+.link.yellow {
+	stroke: #ee4;
+}
+
+.link.green {
+	stroke: #0e0;
+}
+
+.link.blue {
+	stroke: #06f;
+}
+
+.link.purple {
+	stroke: #c0c;
+}
+
 .link.selected {
-	stroke: #fb0;
-	stroke-width: 4px;
+	stroke: #fc0;
+}
+
+.link.selected {
+	stroke: #fc0;
+	stroke-width: 5px;
 }
 
 .node {
@@ -21,26 +49,53 @@
 }
 
 .node.pinned {
-	stroke: #f00;
+	stroke: #999;
+}
+
+.node.selected {
+	stroke: #fc0;
+	r:8px;
+	stroke-width:4px;
 }
 
 /* 
 .node.selected {
-	stroke: #fb0;
-	r:8px;
-	stroke-width:4px;
+	fill: #fc0;
 }
-*/
+ */
 
-.node.selected {
-	fill: #fb0;
+
+.node.red {
+	fill: #f00;
 }
+
+.node.orange {
+	fill: #f90;
+}
+
+.node.yellow {
+	fill: #ee4;
+}
+
+.node.green {
+	fill: #0e0;
+}
+
+.node.blue {
+	fill: #06f;
+}
+
+.node.purple {
+	fill: #c0c;
+}
+
 
 .label {
 	text-anchor: middle;
+	font-family: Arial, Helvetica, sans-serif;
 }
 
-#container {
+#drawing-board-div {
 	position:fixed;
 	left:  10px;
 	right: 10px;
@@ -53,15 +108,23 @@
 	position:fixed;
 	left:  20px;
 	top:   20px;
+	font-family: Arial, Helvetica, sans-serif;
+/* 
+	font-variant: small-caps;
+ */
 }
 
 #show-labels-form {
 	position:fixed;
 	bottom: 20px;
 	left: 20px;
+	font-family: Arial, Helvetica, sans-serif;
+/* 
+	font-variant: small-caps;
+ */
 }
 
-.svg-container {
+#drawing-board {
     display: inline-block;
     position: absolute;
     width: 100%;
@@ -73,28 +136,113 @@
   fill: none;
   pointer-events: all;
 }
+
+.edit-button {
+	position:fixed;
+	right:20px;
+}
+
+.edit-button-rect {
+	fill:white;
+	stroke:black;
+	stroke-width:2;
+	fill-opacity:0.8;
+	x:-19;
+	y:-19;
+	rx:5;
+	ry:5;
+}
+
+.edit-button-path {
+	stroke:black;
+	stroke-width:3;
+	fill:black;
+	stroke-linecap=round;
+}
+
+.color-button {
+	position:fixed;
+	right:20px;
+}
+
+.color-button-rect {
+	stroke:black;
+	stroke-width:2;
+	fill-opacity:1;
+	x:-19;
+	y:-19;
+	rx:5;
+	ry:5;
+}
+
+.color-button-rect.red {
+	fill: #f00;
+}
+
+.color-button-rect.orange {
+	fill: #f90;
+}
+
+.color-button-rect.yellow {
+	fill: #ee4;
+}
+
+.color-button-rect.green {
+	fill: #0e0;
+}
+
+.color-button-rect.blue {
+	fill: #06f;
+}
+
+.color-button-rect.purple {
+	fill: #c0c;
+}
+
+.label, #graph-input-form, #show-labels-form {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none;   /* Chrome/Safari/Opera */
+  -khtml-user-select: none;    /* Konqueror */
+  -moz-user-select: none;      /* Firefox */
+  -ms-user-select: none;       /* IE/Edge */
+  user-select: none;           /* non-prefixed version */
+}
+
 </style>
 <body>
+<!-- 
+<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+ -->
+<script src="d3.min.js"></script>
 
-<div id="container"></div>
+
+<div id="drawing-board-div"></div>
 
 <form id="graph-input-form" action="" onsubmit="return load_g6(this);">
-Graph6: <input type="text" id="graph-input" name="g6" value="" size="30" autofocus>
+Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofocus>
+<!-- 
 <input type="submit" value="Draw!">
-<!-- <input type="button" onclick="save_image(this)" value="Save!"> -->
+ -->
 </form>
 
 <form id="show-labels-form" action="">
 <label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
 </form>
 
-<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<!-- 
-<script src="d3.min.js"></script>
- -->
-<!-- 
-<script src="saveSvgAsPng.js"></script>
- -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <script>
 
 var width = 1300,
@@ -117,29 +265,157 @@ var force = d3.layout.force()
 
 var zoom = d3.behavior.zoom();
 
-var svg = d3.select("#container")
+var drawingBoard = d3.select("#drawing-board-div")
 	.append("svg")
-	.classed("svg-container", true)
+	.attr("id", "drawing-board")
 	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", "0 0 "+width+" "+height)
-	.attr("id", "drawing-board");
+	.attr("viewBox", "0 0 "+width+" "+height);
 
-svg.append("rect")
+// d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .on("click", add_vertex)
+//   .style("bottom", "120")
+//   .append("path")
+//   .classed("edit-button-path", true)
+//   .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+// 
+//   d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .on("click", delete_selected)
+//   .style("bottom", "70")
+//   .append("path")
+//   .classed("edit-button-path", true)
+//   .attr("d","M -13 0 L 13 0");
+// 
+// d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .on("click", contract_selected)
+//   .style("bottom", "20")
+//   .append("path")
+//   .classed("edit-button-path", true)
+//   .attr("d","M -13 13 L 13 -13");
+// 
+// d3.selectAll(".edit-button")
+//   .attr("viewBox", "-20 -20 40,40 ")
+//   .attr("width", "40")
+//   .attr("height", "40")
+//   .insert("rect",":first-child")
+//   .classed("overlay", true)
+//   .classed("edit-button-rect", true)
+//   .attr("width", "38")
+//   .attr("height", "38");
+
+
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "20")
+  .append("rect")
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected(null);})
+  .attr("width", "38")
+  .attr("height", "38")
+  .style("fill", "black");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "70")
+  .append("rect")
+  .classed("red",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("red");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "120")
+  .append("rect")
+  .classed("orange",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("orange");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "170")
+  .append("rect")
+  .classed("yellow",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("yellow");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "220")
+  .append("rect")
+  .classed("green",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("green");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "270")
+  .append("rect")
+  .classed("blue",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("blue");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.select("body")
+  .append("svg")
+  .classed("color-button",true)
+  .style("top", "320")
+  .append("rect")
+  .classed("purple",true)
+  .classed("overlay", true)
+  .classed("color-button-rect", true)
+  .on("click", function () {color_selected("purple");})
+  .attr("width", "38")
+  .attr("height", "38");
+
+d3.selectAll(".color-button")
+  .attr("viewBox", "-20 -20 40,40 ")
+  .attr("width", "40")
+  .attr("height", "40");
+
+
+
+drawingBoard.append("rect")
     .attr("class", "overlay")
     .attr("width", 100*width)
     .attr("height", 100*height)
     .call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
 
-var zoomable = svg.append("g");
-    
+var zoomable = drawingBoard.append("g");
 
 zoomable.append("g").attr("id", "links");
 zoomable.append("g").attr("id", "nodes");
 zoomable.append("g").attr("id", "labels");
 
-var node = svg.select("#nodes").selectAll(".node"),
-    link = svg.select("#links").selectAll(".link"),
-    label = svg.select("#labels").selectAll(".label");
+var node = drawingBoard.select("#nodes").selectAll(".node"),
+    link = drawingBoard.select("#links").selectAll(".link"),
+    label = drawingBoard.select("#labels").selectAll(".label");
 
 function zoomHandler()
 {
@@ -176,12 +452,54 @@ function toggle_select(d)
 
 function select_all()
 {
-	svg.selectAll(".pinned").classed("pinned", true);
+	drawingBoard.selectAll(".pinned").classed("pinned", true);
 }
 
 function select_none()
 {
-	svg.selectAll(".pinned").classed("pinned", false);
+	drawingBoard.selectAll(".pinned").classed("pinned", false);
+}
+
+function delete_selected()
+{
+
+}
+
+function contract_selected()
+{
+
+}
+
+function add_vertex()
+{
+
+}
+
+function color_selected(c)
+{
+	if (d3.event.shiftKey)
+	{
+		if (c!=null)
+		{
+			var selected = drawingBoard.selectAll("."+c)
+				.classed("selected", true);
+		}
+	}
+	else
+	{
+		var selected = drawingBoard.selectAll(".selected")
+			.classed("selected", false)
+			.classed("red", false)
+			.classed("orange",false)
+			.classed("yellow", false)
+			.classed("green", false)
+			.classed("blue",false)
+			.classed("purple", false);
+		if (c != null)
+		{
+			selected.classed(c, true);
+		}
+	}
 }
 
 function check_show_labels()
@@ -213,7 +531,10 @@ function clear_graph()
 function start()
 {
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
-	link.enter().append("line").attr("class", "link").on("click", toggle_select);
+	link.enter()
+		.append("line")
+		.attr("class", "link")
+		.on("mousedown", toggle_select);
 	link.exit().remove();
 	
 	node = node.data(force.nodes(), function(d) { return d.id;});
@@ -222,7 +543,6 @@ function start()
 		.append("circle")
 		.classed("node",true)
 		.on("dblclick", unpin)
-		//.on("click", toggle_select)
 		.on("mousedown", toggle_select)
 		.call(drag);
 	node.exit().remove();
@@ -250,7 +570,7 @@ function tick()
 	
 	label.attr("x", function(d) { return d.x; })
 	     .attr("y", function(d) { return d.y; })
-	     .attr("dy", "-15");
+	     .attr("dy", "-14");
 }
 
 // function save_image(form)
