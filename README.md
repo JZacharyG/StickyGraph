@@ -1,4 +1,4 @@
-# StickyDraw
+# StickyGraph
 A javascript program to help you quickly visualize and work with small graphs.
 
 ##Synopsis
@@ -8,5 +8,8 @@ This program seeks to address this by taking graphs in graph6 format, positionin
 
 You can also select vertices or edges by holding `shift` while clicking.  Clicking on any of those beautiful colorful boxes on the side will apply that color to any selected elements!  Also, if you `shift` click one of those colors, it will select all elements with that color.
 
+There are also buttons to add a vertex (adjacent to all vertices selected, as well as subdividing any edges that are selected), delete selected elements, and identify vertices (all vertices selected, together with the endpoints of all edges selected).  Holding shift while adding or contracting selects the newly created element.  As the graph changes, the graph 6 encoding updates accordingly.
+
 ##Installation
-Installation couldn't be easier!  Just download or clone this repository, open stickydraw.html in your favorite browser, and you are up and running!  Throw some graph6-encoded graphs at it and start playing!
+Installation couldn't be easier!  Just download or clone this repository, open stickygraph.html in your favorite browser, and you are up and running!  Throw some graph6-encoded graphs at it and start playing!
+

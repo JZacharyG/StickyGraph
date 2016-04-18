@@ -294,7 +294,7 @@ var drawingBoard = d3.select("#drawing-board-div")
 var addvButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "60");
+  .style("bottom", "100");
 addvButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", add_vertex);
@@ -305,7 +305,7 @@ addvButton.append("path")
 var deleteButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "20");
+  .style("bottom", "60");
 deleteButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", delete_selected);
@@ -313,16 +313,16 @@ deleteButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
 
-// var contractButton = d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .style("bottom", "20");
-// contractButton.append("rect")
-//   .classed("edit-button-rect", true)
-//   .on("click", contract_selected);
-// contractButton.append("path")
-//   .classed("edit-button-path", true)
-//   .attr("d","M -13 13 L 13 -13");
+var contractButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "20");
+contractButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", contract_selected);
+contractButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M -13 13 L 13 -13");
 
 var selectAllButton = d3.select("body")
   .append("svg")
@@ -385,7 +385,7 @@ selectNoneButton.append("circle")
 //   .append("svg")
 //   .classed("edit-button",true)
 //   .style("left", "20")
-//   .style("bottom", "50");
+//   .style("bottom", "60");
 // TikZButton.append("rect")
 //   .classed("edit-button-rect", true)
 //   .on("click", generate_TikZ);
@@ -394,6 +394,18 @@ selectNoneButton.append("circle")
 // TikZText.append("tspan").text("Ti");
 // TikZText.append("tspan").text("k").style("font-style","italic");
 // TikZText.append("tspan").text("Z");
+
+// var labelButton = d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .style("bottom", "60")
+//   .style("left", "20")
+// labelButton.append("rect")
+//   .classed("edit-button-rect", true)
+//   .on("click", check_show_labels);
+// labelButton.append("path")
+//   .classed("edit-button-path", true)
+//   .attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
 
 
 
@@ -615,6 +627,7 @@ function add_vertex()
 	{
 		selected.each(split_edge);
 		edges_selected = true;
+		update_graph();
 	}
 	
 	selected = drawingBoard.selectAll(".node.selected");
@@ -622,9 +635,15 @@ function add_vertex()
 	{
 		var newv = new_vertex();
 		selected.each(function (d,i) { links.push({source:newv, target: d}); });
+		update_graph();
+		if (d3.event.shiftKey)
+			drawingBoard.selectAll(".node")
+				.filter(function (d) { return d.label == newv.label; })
+				.classed("selected", true);
 	}
 	
-	update_graph();
+	
+	
 	write_g6();
 	force.start();
 }
@@ -656,7 +675,78 @@ function delete_selected()
 
 function contract_selected()
 {
-	alert("Contract");
+	var toContract = [];
+	var newv; // the label of the first vertex being contracted, which will be the resulting vertex.
+	var adj = [];
+	toContract.length = nodes.length;
+	adj.length = nodes.length;
+	for (var i = 0; i < nodes.length; i++)
+		toContract[i] = adj[i] = false;
+	
+	
+	drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.label] = true;} );
+	drawingBoard.selectAll(".link.selected").each( function (d) {toContract[d.source.label] = toContract[d.target.label] = true;} );
+	for (var i = 0; i < links.length;)
+	{
+		var l = links[i];
+		if (toContract[l.source.label] && !toContract[l.target.label])
+		{
+			adj[l.target.label] = true;
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else if (!toContract[l.source.label] && toContract[l.target.label])
+		{
+			adj[l.source.label] = true;
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else
+			i++;
+	}
+	
+	var numContract = 0, sumx=0, sumy=0;
+	for (var i = 0; i < nodes.length; i++) if (toContract[i])
+	{
+		sumx += nodes[i].x;
+		sumy += nodes[i].y;
+		numContract++;
+	}
+	
+	if (numContract == 0)
+		return;
+	
+	for (var i = 0; i < nodes.length; i++)
+	{
+		if (toContract[i])
+		{
+			newv = i;
+			toContract[i] = false;
+			break;
+		}
+	}
+	nodes[newv].px = sumx/numContract;
+	nodes[newv].py = sumy/numContract;
+	nodes[newv].x = sumx/numContract;
+	nodes[newv].y = sumy/numContract;
+	
+	for (var i = nodes.length-1; i >=0; i--)
+	{
+		if (toContract[i]) // we won't delete a vertex before newv, and we don't
+			delete_vertex(nodes[i]); // look at toContract or adj past where we
+		else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
+			links.push({source:nodes[i], target:nodes[newv]}) // anything.
+	}
+	
+	update_graph();
+	if (d3.event.shiftKey)
+		drawingBoard.selectAll(".node")
+			.filter(function (d) { return d.label == newv; })
+			.classed("selected", true);
+	else
+		select_none();
+	write_g6();
+	force.start();
 }
 
 function color_selected(c)
@@ -761,11 +851,6 @@ function tick()
 	     .attr("y", function(d) { return d.y; })
 	     .attr("dy", "-14");
 }
-
-function pausecomp(ms) {
-ms += new Date().getTime();
-while (new Date() < ms){}
-} 
 
 function write_g6()
 {
