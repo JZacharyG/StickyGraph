@@ -146,8 +146,8 @@
 	fill-opacity:0.8;
 	x:-19;
 	y:-19;
-	rx:5;
-	ry:5;
+	rx:6;
+	ry:6;
 	pointer-events: all;
 }
 
@@ -170,8 +170,8 @@
 	fill-opacity:1;
 	x:-19;
 	y:-19;
-	rx:5;
-	ry:5;
+	rx:6;
+	ry:6;
 	pointer-events: all;
 }
 
@@ -294,7 +294,7 @@ var drawingBoard = d3.select("#drawing-board-div")
 var addvButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "120");
+  .style("bottom", "60");
 addvButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", add_vertex);
@@ -305,30 +305,30 @@ addvButton.append("path")
 var deleteButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "70");
+  .style("bottom", "20");
 deleteButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", delete_selected);
 deleteButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
-//  .attr("d","M -13 0 L 13 0");
 
-var contractButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("bottom", "20");
-contractButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", contract_selected);
-contractButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M -13 13 L 13 -13");
+// var contractButton = d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .style("bottom", "20");
+// contractButton.append("rect")
+//   .classed("edit-button-rect", true)
+//   .on("click", contract_selected);
+// contractButton.append("path")
+//   .classed("edit-button-path", true)
+//   .attr("d","M -13 13 L 13 -13");
 
 var selectAllButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "320");
+  .style("top", "60")
+  .style("right", "60");
 selectAllButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_nodes);
@@ -346,7 +346,8 @@ selectAllButton.append("circle")
 var selectEdgesButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "270");
+  .style("top", "100")
+  .style("right", "60");
 selectEdgesButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_edges);
@@ -364,7 +365,8 @@ selectEdgesButton.append("circle")
 var selectNoneButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "220");
+  .style("top", "20")
+  .style("right", "60");
 selectNoneButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_none);
@@ -379,19 +381,19 @@ selectNoneButton.append("circle")
   .attr("cx","0")
   .attr("cy", "0");
 
-var TikZButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("left", "20")
-  .style("bottom", "50");
-TikZButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", generate_TikZ);
-TikZText = TikZButton.append("text")
-  .attr("id","TikZ-button-text");
-TikZText.append("tspan").text("Ti");
-TikZText.append("tspan").text("k").style("font-style","italic");
-TikZText.append("tspan").text("Z");
+// var TikZButton = d3.select("body")
+//   .append("svg")
+//   .classed("edit-button",true)
+//   .style("left", "20")
+//   .style("bottom", "50");
+// TikZButton.append("rect")
+//   .classed("edit-button-rect", true)
+//   .on("click", generate_TikZ);
+// TikZText = TikZButton.append("text")
+//   .attr("id","TikZ-button-text");
+// TikZText.append("tspan").text("Ti");
+// TikZText.append("tspan").text("k").style("font-style","italic");
+// TikZText.append("tspan").text("Z");
 
 
 
@@ -407,7 +409,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "70")
+  .style("top", "60")
   .append("rect")
   .classed("red",true)
   .classed("color-button-rect", true)
@@ -416,7 +418,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "120")
+  .style("top", "100")
   .append("rect")
   .classed("orange",true)
   .classed("color-button-rect", true)
@@ -425,7 +427,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "170")
+  .style("top", "140")
   .append("rect")
   .classed("yellow",true)
   .classed("color-button-rect", true)
@@ -434,7 +436,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "220")
+  .style("top", "180")
   .append("rect")
   .classed("green",true)
   .classed("color-button-rect", true)
@@ -443,7 +445,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "270")
+  .style("top", "220")
   .append("rect")
   .classed("blue",true)
   .classed("color-button-rect", true)
@@ -452,7 +454,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "320")
+  .style("top", "260")
   .append("rect")
   .classed("purple",true)
   .classed("color-button-rect", true)
@@ -460,13 +462,13 @@ d3.select("body")
 
 d3.selectAll(".color-button")
   .attr("viewBox", "-20 -20 40,40 ")
-  .attr("width", "40")
-  .attr("height", "40");
+  .attr("width", "35")
+  .attr("height", "35");
 
 d3.selectAll(".edit-button")
   .attr("viewBox", "-20 -20 40,40 ")
-  .attr("width", "40")
-  .attr("height", "40");
+  .attr("width", "35")
+  .attr("height", "35");
 
 d3.selectAll(".edit-button-path")
   .attr("stroke-linecap","round");
