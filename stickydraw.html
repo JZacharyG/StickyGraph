@@ -33,10 +33,6 @@
 
 .link.selected {
 	stroke: #fc0;
-}
-
-.link.selected {
-	stroke: #fc0;
 	stroke-width: 5px;
 }
 
@@ -140,6 +136,7 @@
 .edit-button {
 	position:fixed;
 	right:20px;
+	pointer-events: none;
 }
 
 .edit-button-rect {
@@ -151,18 +148,20 @@
 	y:-19;
 	rx:5;
 	ry:5;
+	pointer-events: all;
 }
 
 .edit-button-path {
 	stroke:black;
 	stroke-width:3;
 	fill:black;
-	stroke-linecap=round;
+	pointer-events: none;
 }
 
 .color-button {
 	position:fixed;
 	right:20px;
+	pointer-events: none;
 }
 
 .color-button-rect {
@@ -173,6 +172,7 @@
 	y:-19;
 	rx:5;
 	ry:5;
+	pointer-events: all;
 }
 
 .color-button-rect.red {
@@ -199,7 +199,17 @@
 	fill: #c0c;
 }
 
-.label, #graph-input-form, #show-labels-form {
+#TikZ-button-text {
+	font-family:"Times New Roman", Times, serif;
+	text-anchor:middle;
+	dominant-baseline:central;
+	x:0;
+	y:0;
+	font-size:17px;
+	pointer-events: none;
+}
+
+.label, #graph-input-form, #show-labels-form, #TikZ-button-text {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none;   /* Chrome/Safari/Opera */
   -khtml-user-select: none;    /* Konqueror */
@@ -207,6 +217,15 @@
   -ms-user-select: none;       /* IE/Edge */
   user-select: none;           /* non-prefixed version */
 }
+
+
+
+/*
+#TikZ-button-text tspan {
+	font-style: italic;
+}
+*/
+
 
 </style>
 <body>
@@ -252,6 +271,7 @@ var color = d3.scale.category10();
 
 var nodes = [],
     links = [];
+var nextID = 0; // when we edit the graph, maybe it would help to have a nice, unique id to go along with it? maybe we don't need ids at all, though?
 
 var force = d3.layout.force()
     .nodes(nodes)
@@ -271,42 +291,107 @@ var drawingBoard = d3.select("#drawing-board-div")
 	.attr("preserveAspectRatio", "xMinYMin meet")
 	.attr("viewBox", "0 0 "+width+" "+height);
 
-// d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .on("click", add_vertex)
-//   .style("bottom", "120")
-//   .append("path")
-//   .classed("edit-button-path", true)
-//   .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
-// 
-//   d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .on("click", delete_selected)
-//   .style("bottom", "70")
-//   .append("path")
-//   .classed("edit-button-path", true)
-//   .attr("d","M -13 0 L 13 0");
-// 
-// d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .on("click", contract_selected)
-//   .style("bottom", "20")
-//   .append("path")
-//   .classed("edit-button-path", true)
-//   .attr("d","M -13 13 L 13 -13");
-// 
-// d3.selectAll(".edit-button")
-//   .attr("viewBox", "-20 -20 40,40 ")
-//   .attr("width", "40")
-//   .attr("height", "40")
-//   .insert("rect",":first-child")
-//   .classed("overlay", true)
-//   .classed("edit-button-rect", true)
-//   .attr("width", "38")
-//   .attr("height", "38");
+var addvButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "120");
+addvButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", add_vertex);
+addvButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+
+var deleteButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "70");
+deleteButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", delete_selected);
+deleteButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
+//  .attr("d","M -13 0 L 13 0");
+
+var contractButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "20");
+contractButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", contract_selected);
+contractButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M -13 13 L 13 -13");
+
+var selectAllButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "320");
+selectAllButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", select_all_nodes);
+selectAllButton.append("line")
+  .classed("link",true)
+  .attr({x1:0, y1:0, x2:18, y2:0});
+selectAllButton.append("line")
+  .classed("link", true)
+  .attr({x1:0, y1:0, x2:-18, y2:0});
+selectAllButton.append("circle")
+  .classed("node selected", true)
+  .attr("cx","0")
+  .attr("cy", "0");
+
+var selectEdgesButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "270");
+selectEdgesButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", select_all_edges);
+selectEdgesButton.append("line")
+  .classed("link selected",true)
+  .attr({x1:0, y1:0, x2:18, y2:0});
+selectEdgesButton.append("line")
+  .classed("link selected", true)
+  .attr({x1:0, y1:0, x2:-18, y2:0});
+selectEdgesButton.append("circle")
+  .classed("node", true)
+  .attr("cx","0")
+  .attr("cy", "0");
+
+var selectNoneButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "220");
+selectNoneButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", select_none);
+selectNoneButton.append("line")
+  .classed("link",true)
+  .attr({x1:0, y1:0, x2:18, y2:0});
+selectNoneButton.append("line")
+  .classed("link", true)
+  .attr({x1:0, y1:0, x2:-18, y2:0});
+selectNoneButton.append("circle")
+  .classed("node", true)
+  .attr("cx","0")
+  .attr("cy", "0");
+
+var TikZButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("left", "20")
+  .style("bottom", "50");
+TikZButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", generate_TikZ);
+TikZText = TikZButton.append("text")
+  .attr("id","TikZ-button-text");
+TikZText.append("tspan").text("Ti");
+TikZText.append("tspan").text("k").style("font-style","italic");
+TikZText.append("tspan").text("Z");
 
 
 
@@ -315,11 +400,8 @@ d3.select("body")
   .classed("color-button",true)
   .style("top", "20")
   .append("rect")
-  .classed("overlay", true)
   .classed("color-button-rect", true)
   .on("click", function () {color_selected(null);})
-  .attr("width", "38")
-  .attr("height", "38")
   .style("fill", "black");
 
 d3.select("body")
@@ -328,11 +410,8 @@ d3.select("body")
   .style("top", "70")
   .append("rect")
   .classed("red",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("red");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("red");});
 
 d3.select("body")
   .append("svg")
@@ -340,11 +419,8 @@ d3.select("body")
   .style("top", "120")
   .append("rect")
   .classed("orange",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("orange");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("orange");});
 
 d3.select("body")
   .append("svg")
@@ -352,11 +428,8 @@ d3.select("body")
   .style("top", "170")
   .append("rect")
   .classed("yellow",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("yellow");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("yellow");});
 
 d3.select("body")
   .append("svg")
@@ -364,11 +437,8 @@ d3.select("body")
   .style("top", "220")
   .append("rect")
   .classed("green",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("green");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("green");});
 
 d3.select("body")
   .append("svg")
@@ -376,11 +446,8 @@ d3.select("body")
   .style("top", "270")
   .append("rect")
   .classed("blue",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("blue");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("blue");});
 
 d3.select("body")
   .append("svg")
@@ -388,17 +455,29 @@ d3.select("body")
   .style("top", "320")
   .append("rect")
   .classed("purple",true)
-  .classed("overlay", true)
   .classed("color-button-rect", true)
-  .on("click", function () {color_selected("purple");})
-  .attr("width", "38")
-  .attr("height", "38");
+  .on("click", function () {color_selected("purple");});
 
 d3.selectAll(".color-button")
   .attr("viewBox", "-20 -20 40,40 ")
   .attr("width", "40")
   .attr("height", "40");
 
+d3.selectAll(".edit-button")
+  .attr("viewBox", "-20 -20 40,40 ")
+  .attr("width", "40")
+  .attr("height", "40");
+
+d3.selectAll(".edit-button-path")
+  .attr("stroke-linecap","round");
+
+d3.selectAll(".edit-button-rect")
+  .attr("width", "38")
+  .attr("height", "38");
+  
+d3.selectAll(".color-button-rect")
+  .attr("width", "38")
+  .attr("height", "38");
 
 
 drawingBoard.append("rect")
@@ -450,29 +529,132 @@ function toggle_select(d)
 	}
 }
 
-function select_all()
+function pin_all()
 {
-	drawingBoard.selectAll(".pinned").classed("pinned", true);
+	drawingBoard.selectAll(".node").each(pin);
+}
+
+function unpin_all()
+{
+	drawingBoard.selectAll(".node").each(unpin);
+}
+
+function select_all_nodes()
+{
+	drawingBoard.selectAll(".node").classed("selected", true);
+}
+
+function select_all_edges()
+{
+	drawingBoard.selectAll(".link").classed("selected", true);
 }
 
 function select_none()
 {
-	drawingBoard.selectAll(".pinned").classed("pinned", false);
+	drawingBoard.selectAll(".selected").classed("selected", false);
 }
 
-function delete_selected()
+function new_vertex()
 {
-
+	var newv = {id:nextID, label:nodes.length, x:getRandom(0,width), y:getRandom(0,height)};
+	nodes.push(newv);
+	nextID++;
+	return newv;
 }
 
-function contract_selected()
+function delete_vertex(d)
 {
+	for (var i=0; i < links.length;)
+	{
+		if (links[i].source.id == d.id || links[i].target.id == d.id)
+		{
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else
+			i++;
+	}
+	
+	for (var i=d.label+1; i<nodes.length; i++)
+	{
+		nodes[i].label--;
+		nodes[i-1]=nodes[i];
+	}
+	nodes.length--;
+}
 
+function delete_edge(d)
+{
+	for (var i=0; i < links.length; i++)
+	{
+		if (links[i].source.id == d.source.id && links[i].target.id == d.target.id)
+		{
+			links[i] = links[links.length-1];
+			links.length--;
+			return;
+		}
+	}
+}
+
+function split_edge(d)
+{
+	var newv = new_vertex();
+	links.push({source:newv, target:d.source});
+	d.source = newv;
 }
 
 function add_vertex()
 {
+	var edges_selected = false;
+	
+	//split edges if they are selected
+	var selected = drawingBoard.selectAll(".link.selected");
+	if (!selected.empty())
+	{
+		selected.each(split_edge);
+		edges_selected = true;
+	}
+	
+	selected = drawingBoard.selectAll(".node.selected");
+	if (!selected.empty() || !edges_selected)
+	{
+		var newv = new_vertex();
+		selected.each(function (d,i) { links.push({source:newv, target: d}); });
+	}
+	
+	update_graph();
+	write_g6();
+	force.start();
+}
 
+function delete_selected()
+{
+	var changes=false;
+	var selected = drawingBoard.selectAll(".link.selected");
+	if (!selected.empty())
+	{
+		selected.each(delete_edge);
+		changes = true;
+	}
+	
+	selected = drawingBoard.selectAll(".node.selected");
+	if (!selected.empty())
+	{
+		selected.each(delete_vertex);
+		changes = true;
+	}
+	
+	if (changes)
+	{
+		update_graph();
+		write_g6();
+		force.start();
+	}
+}
+
+function contract_selected()
+{
+	alert("Contract");
 }
 
 function color_selected(c)
@@ -502,6 +684,11 @@ function color_selected(c)
 	}
 }
 
+function generate_TikZ()
+{
+	alert("TikZ");
+}
+
 function check_show_labels()
 {
 	if (document.getElementById("show-labels-box").checked)
@@ -528,7 +715,7 @@ function clear_graph()
 	label.exit().remove();
 }
 
-function start()
+function update_graph()
 {
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter()
@@ -549,13 +736,13 @@ function start()
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
 	label
+		.text(function(d) { return d.label;})
 		.enter()
 		.append("text")
 		.classed("label", true)
-		.text(function(d) { return d.id;});
+		.text(function(d) { return d.label;});
 	label.exit().remove();
 	check_show_labels();
-	force.start();
 }
 
 function tick()
@@ -573,10 +760,31 @@ function tick()
 	     .attr("dy", "-14");
 }
 
-// function save_image(form)
-// {
-// 	saveSvgAsPng(document.getElementById("drawing-board"), "Graph.png");
-// }
+function pausecomp(ms) {
+ms += new Date().getTime();
+while (new Date() < ms){}
+} 
+
+function write_g6()
+{
+	var nv = nodes.length;
+	var g6string = "";
+	g6string += String.fromCharCode(nv + 63);
+	var len = Math.ceil(nv*(nv-1)/12);
+	for (var i = 0; i < len; i++)
+		g6string += String.fromCharCode(63);
+	for (var i = 0; i < links.length; i++)
+	{
+		var l = links[i];
+		
+		var V = Math.max(l.source.label, l.target.label);
+		var v = Math.min(l.source.label, l.target.label);
+		var c = Math.floor((V*(V-1)/2+v)/6);
+		var b = 1 << (5-((V*(V-1)/2+v) % 6));
+		g6string = g6string.substring(0, c+1) + String.fromCharCode(((g6string.charCodeAt(c+1) - 63) | b) + 63) + g6string.substring(c+2);
+	}
+	document.getElementById("graph-input").value = g6string;
+}
 
 function load_g6(form)
 {
@@ -593,10 +801,9 @@ function load_g6(form)
 	
 	var nv = g6string.charCodeAt(g6i) - 63;
 
-
-	for (i=0; i<nv; i++)
+	for (nextID=0; nextID<nv; nextID++)
 	{
-		nodes[i]={id:i, x:getRandom(0,width), y:getRandom(0,height)};
+		nodes[nextID]={id:nextID, label:nextID, x:getRandom(0,width), y:getRandom(0,height)};
 	}
 	g6i++;
 	
@@ -631,7 +838,8 @@ function load_g6(form)
 		}
 	}
 	
-	start();
+	update_graph();
+	force.start();
  	return false;
 }
 
