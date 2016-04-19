@@ -110,15 +110,14 @@
  */
 }
 
+/* 
 #show-labels-form {
 	position:fixed;
 	bottom: 20px;
 	left: 20px;
 	font-family: Arial, Helvetica, sans-serif;
-/* 
-	font-variant: small-caps;
- */
 }
+ */
 
 #drawing-board {
     display: inline-block;
@@ -151,10 +150,23 @@
 	pointer-events: all;
 }
 
+.edit-button-rect.selected {
+	stroke: #fc0;
+	fill: #ffeb99;
+}
+
 .edit-button-path {
 	stroke:black;
 	stroke-width:3;
 	fill:black;
+	pointer-events: none;
+}
+
+.edit-button-text {
+	font-family: Arial, Helvetica, sans-serif;
+	text-anchor:middle;
+	dominant-baseline:central;
+	font-size:16px;
 	pointer-events: none;
 }
 
@@ -209,7 +221,7 @@
 	pointer-events: none;
 }
 
-.label, #graph-input-form, #show-labels-form, #TikZ-button-text {
+.label, #graph-input-form, #show-labels-form, #TikZ-button-text, .edit-button-text {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none;   /* Chrome/Safari/Opera */
   -khtml-user-select: none;    /* Konqueror */
@@ -217,14 +229,6 @@
   -ms-user-select: none;       /* IE/Edge */
   user-select: none;           /* non-prefixed version */
 }
-
-
-
-/*
-#TikZ-button-text tspan {
-	font-style: italic;
-}
-*/
 
 
 </style>
@@ -244,9 +248,11 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
  -->
 </form>
 
+<!-- 
 <form id="show-labels-form" action="">
 <label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
 </form>
+ -->
 
 
 
@@ -294,13 +300,34 @@ var drawingBoard = d3.select("#drawing-board-div")
 var addvButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "100");
+  .style("bottom", "140");
 addvButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", add_vertex);
 addvButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+addvButton.append("text")
+	.classed("edit-button-text", true)
+	.attr("x","9")
+	.attr("y","9")
+	.text("v");
+
+var addeButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "100");
+addeButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", toggle_add_edge);
+addeButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+addeButton.append("text")
+	.classed("edit-button-text", true)
+	.attr("x","9")
+	.attr("y","9")
+	.text("e");
 
 var deleteButton = d3.select("body")
   .append("svg")
@@ -381,6 +408,44 @@ selectNoneButton.append("circle")
   .attr("cx","0")
   .attr("cy", "0");
 
+var pinButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("top", "60")
+  .style("right", "100");
+pinButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", pin_all);
+pinButton.append("line")
+  .classed("link",true)
+  .attr({x1:0, y1:0, x2:18, y2:0});
+pinButton.append("line")
+  .classed("link", true)
+  .attr({x1:0, y1:0, x2:-18, y2:0});
+pinButton.append("circle")
+  .classed("node pinned", true)
+  .attr("cx","0")
+  .attr("cy", "0");
+
+var unpinButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("top", "20")
+  .style("right", "100");
+unpinButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", unpin_all);
+unpinButton.append("line")
+  .classed("link",true)
+  .attr({x1:0, y1:0, x2:18, y2:0});
+unpinButton.append("line")
+  .classed("link", true)
+  .attr({x1:0, y1:0, x2:-18, y2:0});
+unpinButton.append("circle")
+  .classed("node", true)
+  .attr("cx","0")
+  .attr("cy", "0");
+
 // var TikZButton = d3.select("body")
 //   .append("svg")
 //   .classed("edit-button",true)
@@ -395,17 +460,19 @@ selectNoneButton.append("circle")
 // TikZText.append("tspan").text("k").style("font-style","italic");
 // TikZText.append("tspan").text("Z");
 
-// var labelButton = d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .style("bottom", "60")
-//   .style("left", "20")
-// labelButton.append("rect")
-//   .classed("edit-button-rect", true)
-//   .on("click", check_show_labels);
-// labelButton.append("path")
-//   .classed("edit-button-path", true)
-//   .attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
+var labelButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("bottom", "20")
+  .style("left", "20")
+labelRect = labelButton.append("rect")
+  .classed("edit-button-rect selected", true)
+  .on("click", function () { 
+  		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
+  		check_show_labels(); });
+labelButton.append("path")
+  .classed("edit-button-path", true)
+  .attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
 
 
 
@@ -521,7 +588,43 @@ function getRandom(min, max)
 }
 
 var drag = force.drag()
-		.on("dragstart", pin);
+	.on("dragstart", pin);
+var addEdgeDrag = d3.behavior.drag()
+	.on("dragstart", new_edge_drag_start)
+	.on("drag", new_edge_drag)
+	.on("dragend", new_edge_drag_end);
+var dragLink;
+
+function new_edge_drag_start(d)
+{
+	console.log(d);
+	console.log(this);
+	dragLink = drawingBoard.select("#links")
+		.append("line")
+		.classed("link", true)
+		.attr({"x1":d.x, "y1":d.y, "x2":d.x, "y2":d.y});
+}
+
+function new_edge_drag(d)
+{
+	dragLink.attr({"x2":d3.event.x, "y2":d3.event.y});
+}
+
+function new_edge_drag_end(d1)
+{
+	var x = dragLink.attr("x2"), y=dragLink.attr("y2");
+	v2 = drawingBoard.selectAll(".node").filter(function (d2) {
+		return ((d2.x - x) * (d2.x - x) + (d2.y - y) * (d2.y - y)) <= 100; })
+	dragLink.remove();
+	if (!v2.empty())
+	{
+		d2 = v2.datum();
+		links.push({source:d1, target:d2});
+		update_graph();
+		write_g6();
+		force.start();
+	}
+}
 
 function unpin(d)
 {
@@ -531,7 +634,23 @@ function unpin(d)
 
 function pin(d)
 {
-	d3.select(this).classed("pinned", d.fixed = true);
+	if (!d3.event.sourceEvent.shiftKey && !d3.event.sourceEvent.altKey)
+		d3.select(this).classed("pinned", d.fixed = true);
+}
+
+function toggle_add_edge()
+{
+	button = d3.select(this);
+	if (button.classed("selected"))
+	{
+		button.classed("selected", false);
+		drawingBoard.selectAll(".node").call(drag);
+	}
+	else
+	{
+		button.classed("selected", true);
+		drawingBoard.selectAll(".node").call(addEdgeDrag);
+	}
 }
 
 function toggle_select(d)
@@ -545,7 +664,7 @@ function toggle_select(d)
 
 function pin_all()
 {
-	drawingBoard.selectAll(".node").each(pin);
+	drawingBoard.selectAll(".node").each(function (d) { d3.select(this).classed("pinned", d.fixed = true); });
 }
 
 function unpin_all()
@@ -783,7 +902,8 @@ function generate_TikZ()
 
 function check_show_labels()
 {
-	if (document.getElementById("show-labels-box").checked)
+//	console.log(labelRect);
+	if (labelRect.classed("selected"))
 		label.attr("visibility", "visible");
 	else
 		label.attr("visibility", "hidden");
@@ -824,6 +944,7 @@ function update_graph()
 		.on("dblclick", unpin)
 		.on("mousedown", toggle_select)
 		.call(drag);
+		//.call(addEdgeDrag);
 	node.exit().remove();
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
