@@ -273,7 +273,17 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 var width = 1300,
     height = 700;
 
-var color = d3.scale.category10();
+const DRAGPIN   = 0, // modes
+      ADDEDGE   = 1,
+      CONTRACT  = 2,
+      DELETE    = 3,
+      ADDVERTEX = 4,
+      COLOR     = 5;
+var mode = DRAGPIN;
+var colorMode = null; // this would be the color if we are in color mode. Otherwise unused.
+
+
+var color = d3.scale.category10(); // FIX ME? do we ever use this?
 
 var nodes = [],
     links = [];
@@ -302,8 +312,9 @@ var addvButton = d3.select("body")
   .classed("edit-button",true)
   .style("bottom", "140");
 addvButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", add_vertex);
+  .classed("edit-button-rect mode-button", true)
+  .attr("id", "add-v-button")
+  .on("click", add_vertex_button_press);
 addvButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
@@ -318,8 +329,9 @@ var addeButton = d3.select("body")
   .classed("edit-button",true)
   .style("bottom", "100");
 addeButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", toggle_add_edge);
+  .classed("edit-button-rect mode-button", true)
+  .attr("id", "add-e-button")
+  .on("click", add_edge_button_press);
 addeButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
@@ -334,8 +346,9 @@ var deleteButton = d3.select("body")
   .classed("edit-button",true)
   .style("bottom", "60");
 deleteButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", delete_selected);
+  .classed("edit-button-rect mode-button", true)
+  .attr("id", "delete-button")
+  .on("click", delete_button_press);
 deleteButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
@@ -345,8 +358,9 @@ var contractButton = d3.select("body")
   .classed("edit-button",true)
   .style("bottom", "20");
 contractButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", contract_selected);
+  .classed("edit-button-rect mode-button", true)
+  .attr("id", "contract-button")
+  .on("click", contract_button_press);
 contractButton.append("path")
   .classed("edit-button-path", true)
   .attr("d","M -13 13 L 13 -13");
@@ -482,6 +496,7 @@ d3.select("body")
   .style("top", "20")
   .append("rect")
   .classed("color-button-rect", true)
+  .attr("id", "no-color-button")
   .on("click", function () {color_selected(null);})
   .style("fill", "black");
 
@@ -492,6 +507,7 @@ d3.select("body")
   .append("rect")
   .classed("red",true)
   .classed("color-button-rect", true)
+  .attr("id", "red-button")
   .on("click", function () {color_selected("red");});
 
 d3.select("body")
@@ -501,6 +517,7 @@ d3.select("body")
   .append("rect")
   .classed("orange",true)
   .classed("color-button-rect", true)
+  .attr("id", "orange-button")
   .on("click", function () {color_selected("orange");});
 
 d3.select("body")
@@ -510,6 +527,7 @@ d3.select("body")
   .append("rect")
   .classed("yellow",true)
   .classed("color-button-rect", true)
+  .attr("id", "yellow-button")
   .on("click", function () {color_selected("yellow");});
 
 d3.select("body")
@@ -519,6 +537,7 @@ d3.select("body")
   .append("rect")
   .classed("green",true)
   .classed("color-button-rect", true)
+  .attr("id", "green-button")
   .on("click", function () {color_selected("green");});
 
 d3.select("body")
@@ -528,6 +547,7 @@ d3.select("body")
   .append("rect")
   .classed("blue",true)
   .classed("color-button-rect", true)
+  .attr("id", "blue-button")
   .on("click", function () {color_selected("blue");});
 
 d3.select("body")
@@ -537,6 +557,7 @@ d3.select("body")
   .append("rect")
   .classed("purple",true)
   .classed("color-button-rect", true)
+  .attr("id", "purple-button")
   .on("click", function () {color_selected("purple");});
 
 d3.selectAll(".color-button")
@@ -607,7 +628,11 @@ function new_edge_drag_start(d)
 
 function new_edge_drag(d)
 {
-	dragLink.attr({"x2":d3.event.x, "y2":d3.event.y});
+	dragLink.attr({"x1":d.x, "y1":d.y, "x2":d3.event.x, "y2":d3.event.y});
+	if (d3.event.sourceEvent.shiftKey)
+		dragLink.classed("selected", true);
+	else
+		dragLink.classed("selected", false);
 }
 
 function new_edge_drag_end(d1)
@@ -619,10 +644,21 @@ function new_edge_drag_end(d1)
 	if (!v2.empty())
 	{
 		d2 = v2.datum();
-		links.push({source:d1, target:d2});
-		update_graph();
-		write_g6();
-		force.start();
+		if (d2.id != d1.id) // and if the edge isn't already there
+		{
+			for (var i = 0; i < links.length; i++)
+				if (links[i].source.id == d1.id && links[i].target.id == d2.id ||
+					links[i].source.id == d2.id && links[i].target.id == d1.id)
+					return;
+			links.push({source:d1, target:d2});
+			update_graph();
+			if (d3.event.sourceEvent.shiftKey)
+				drawingBoard.selectAll(".link")
+					.filter(function (d) { return d.source.id == d1.id && d.target.id == d2.id; })
+					.classed("selected", true);
+			write_g6();
+			force.start();
+		}
 	}
 }
 
@@ -638,27 +674,84 @@ function pin(d)
 		d3.select(this).classed("pinned", d.fixed = true);
 }
 
-function toggle_add_edge()
+function change_mode(m, c)
 {
-	button = d3.select(this);
-	if (button.classed("selected"))
+	d3.selectAll(".mode-button").classed("selected", false);
+	mode = m;
+	colorMode = c;
+	switch (mode)
 	{
-		button.classed("selected", false);
-		drawingBoard.selectAll(".node").call(drag);
+		case DRAGPIN: break;
+		case ADDEDGE:
+			d3.select("#add-e-button").classed("selected", true);
+			break;
+		case ADDVERTEX:
+			d3.select("#add-v-button").classed("selected", true);
+			break;
+		case CONTRACT:
+			d3.select("#contract-button").classed("selected", true);
+			break;
+		case DELETE:
+			d3.select("#delete-button").classed("selected", true);
+			break;
+		case COLOR:
+			if (c == null)
+				d3.select("#no-color-button").classed("selected", true);
+			else
+				d3.select("#" + c + "-button").classed("selected", true);
+			break;
 	}
-	else
-	{
-		button.classed("selected", true);
-		drawingBoard.selectAll(".node").call(addEdgeDrag);
-	}
+	add_event_listeners();
 }
 
-function toggle_select(d)
+function add_event_listeners()
 {
-	if (d3.event.shiftKey)
+	switch (mode)
 	{
-		var feature=d3.select(this);
-		feature.classed("selected", !feature.classed("selected"));
+		case DRAGPIN: // FIX ME. clear any edge events
+			link.on("click", null)
+				.on("mousedown", toggle_select);
+			node.on("dblclick", unpin)
+				.on("click", null)
+				.on("mousedown", toggle_select)
+				.call(drag);
+		break;
+		case ADDEDGE:
+			link.on("click", null)
+				.on("mousedown", toggle_select);
+			node.on("click", toggle_select)
+				.on("dblclick", null)
+				.on("mousedown", null)
+				.call(addEdgeDrag);
+			break;
+		case ADDVERTEX:
+			console.log("unsupported feature: interactive add vertex");
+			break;
+		case CONTRACT:
+			link.on("click", function (d) {
+					contract_edge(d); update_graph(); write_g6(); force.start(); })
+				.on("mousedown", null);
+			node.on("dblclick", unpin)
+				.on("click", null)
+				.on("mousedown", toggle_select)
+				.call(drag);
+				break;
+		case DELETE:
+			link.on("click", function (d) {
+					delete_edge(d); update_graph(); write_g6(); force.start(); })
+				.on("mousedown", null);
+			node.on("dblclick", null)
+				.on("click",  function (d) {
+					delete_vertex(d); update_graph(); write_g6(); force.start(); })
+				.on("mousedown", null)
+				.call(drag);
+				break;
+		case COLOR:
+			if (c == null)
+				console.log("unsupported feature: interactive uncolor");
+			else
+				console.log("unsupported feature: interactive color");
+			break;
 	}
 }
 
@@ -729,6 +822,55 @@ function delete_edge(d)
 	}
 }
 
+
+
+function contract_edge(d)
+{
+	var adj=[];
+	adj.length = nodes.length;
+	for (var i = 0; i < nodes.length; i++)
+		adj[i] = false;
+	var v1 = Math.min(d.source.label, d.target.label);
+	var v2 = Math.max(d.source.label, d.target.label);
+	for (var i = 0; i < links.length;)
+	{
+		var l = links[i];
+		if (l.source.label == v1 || l.source.label == v2)
+		{
+			adj[l.target.label] = true;
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else if (l.target.label == v1 || l.target.label == v2)
+		{
+			adj[l.source.label] = true;
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else
+			i++;
+	}
+	
+	adj[d.source.label] = adj[d.target.label] = false;
+	
+	for (var i = 0; i < nodes.length; i++) if (adj[i])
+		links.push({source:nodes[i], target:nodes[v1]});
+	var avgx = (nodes[v1].x + nodes[v2].x)/2;
+	var avgy = (nodes[v1].y + nodes[v2].y)/2;
+	nodes[v1].px = avgx;
+	nodes[v1].py = avgy;
+	nodes[v1].x = avgx;
+	nodes[v1].y = avgy;
+	
+	console.log(v2)
+	delete_vertex(nodes[v2]);
+	
+	if (d3.event.shiftKey)
+			drawingBoard.selectAll(".node")
+				.filter(function (d) { return d.label == v1; })
+				.classed("selected", true);
+}
+
 function split_edge(d)
 {
 	var newv = new_vertex();
@@ -736,7 +878,7 @@ function split_edge(d)
 	d.source = newv;
 }
 
-function add_vertex()
+function add_vertex_button_press()
 {
 	var edges_selected = false;
 	
@@ -767,7 +909,26 @@ function add_vertex()
 	force.start();
 }
 
-function delete_selected()
+
+function add_edge_button_press()
+{
+	if (d3.select(this).classed("selected"))
+		change_mode(DRAGPIN, null);
+	else
+		change_mode(ADDEDGE, null);
+	add_event_listeners();
+}
+
+function toggle_select(d)
+{
+	if (d3.event.shiftKey)
+	{
+		var feature=d3.select(this);
+		feature.classed("selected", !feature.classed("selected"));
+	}
+}
+
+function delete_button_press()
 {
 	var changes=false;
 	var selected = drawingBoard.selectAll(".link.selected");
@@ -790,9 +951,17 @@ function delete_selected()
 		write_g6();
 		force.start();
 	}
+	else
+	{
+		if (d3.select(this).classed("selected"))
+			change_mode(DRAGPIN, null);
+		else
+			change_mode(DELETE, null);
+		add_event_listeners();
+	}
 }
 
-function contract_selected()
+function contract_button_press()
 {
 	var toContract = [];
 	var newv; // the label of the first vertex being contracted, which will be the resulting vertex.
@@ -803,69 +972,91 @@ function contract_selected()
 		toContract[i] = adj[i] = false;
 	
 	
-	drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.label] = true;} );
-	drawingBoard.selectAll(".link.selected").each( function (d) {toContract[d.source.label] = toContract[d.target.label] = true;} );
-	for (var i = 0; i < links.length;)
+	selectedNodes = drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.label] = true;} );
+	selectedLinks = drawingBoard.selectAll(".link.selected");
+	
+	if (selectedNodes.empty() && selectedLinks.empty())
 	{
-		var l = links[i];
-		if (toContract[l.source.label] && !toContract[l.target.label])
-		{
-			adj[l.target.label] = true;
-			links[i] = links[links.length-1];
-			links.length--;
-		}
-		else if (!toContract[l.source.label] && toContract[l.target.label])
-		{
-			adj[l.source.label] = true;
-			links[i] = links[links.length-1];
-			links.length--;
-		}
+		if (d3.select(this).classed("selected"))
+			change_mode(DRAGPIN, null);
 		else
-			i++;
-	}
-	
-	var numContract = 0, sumx=0, sumy=0;
-	for (var i = 0; i < nodes.length; i++) if (toContract[i])
-	{
-		sumx += nodes[i].x;
-		sumy += nodes[i].y;
-		numContract++;
-	}
-	
-	if (numContract == 0)
+			change_mode(CONTRACT, null);
+		add_event_listeners();
 		return;
+	}
 	
-	for (var i = 0; i < nodes.length; i++)
+	if (selectedNodes.empty())
 	{
-		if (toContract[i])
+		selectedLinks.each( contract_edge );
+		update_graph();
+		write_g6();
+		force.start();
+	}
+	
+	if (selectedLinks.empty())
+	{
+		for (var i = 0; i < links.length;)
 		{
-			newv = i;
-			toContract[i] = false;
-			break;
+			var l = links[i];
+			if (toContract[l.source.label] && !toContract[l.target.label])
+			{
+				adj[l.target.label] = true;
+				links[i] = links[links.length-1];
+				links.length--;
+			}
+			else if (!toContract[l.source.label] && toContract[l.target.label])
+			{
+				adj[l.source.label] = true;
+				links[i] = links[links.length-1];
+				links.length--;
+			}
+			else
+				i++;
 		}
-	}
-	nodes[newv].px = sumx/numContract;
-	nodes[newv].py = sumy/numContract;
-	nodes[newv].x = sumx/numContract;
-	nodes[newv].y = sumy/numContract;
 	
-	for (var i = nodes.length-1; i >=0; i--)
-	{
-		if (toContract[i]) // we won't delete a vertex before newv, and we don't
-			delete_vertex(nodes[i]); // look at toContract or adj past where we
-		else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
-			links.push({source:nodes[i], target:nodes[newv]}) // anything.
-	}
+		var numContract = 0, sumx=0, sumy=0;
+		for (var i = 0; i < nodes.length; i++) if (toContract[i])
+		{
+			sumx += nodes[i].x;
+			sumy += nodes[i].y;
+			numContract++;
+		}
 	
-	update_graph();
-	if (d3.event.shiftKey)
-		drawingBoard.selectAll(".node")
-			.filter(function (d) { return d.label == newv; })
-			.classed("selected", true);
-	else
-		select_none();
-	write_g6();
-	force.start();
+		if (numContract == 0)
+			return;
+	
+		for (var i = 0; i < nodes.length; i++)
+		{
+			if (toContract[i])
+			{
+				newv = i;
+				toContract[i] = false;
+				break;
+			}
+		}
+		nodes[newv].px = sumx/numContract;
+		nodes[newv].py = sumy/numContract;
+		nodes[newv].x = sumx/numContract;
+		nodes[newv].y = sumy/numContract;
+	
+		for (var i = nodes.length-1; i >=0; i--)
+		{
+			if (toContract[i]) // we won't delete a vertex before newv, and we don't
+				delete_vertex(nodes[i]); // look at toContract or adj past where we
+			else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
+				links.push({source:nodes[i], target:nodes[newv]}); // anything.
+		}
+	
+		update_graph();
+		if (d3.event.shiftKey)
+			drawingBoard.selectAll(".node")
+				.filter(function (d) { return d.label == newv; })
+				.classed("selected", true);
+		else
+			select_none();
+		write_g6();
+		force.start();
+	}
 }
 
 function color_selected(c)
@@ -932,19 +1123,14 @@ function update_graph()
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter()
 		.append("line")
-		.attr("class", "link")
-		.on("mousedown", toggle_select);
+		.attr("class", "link");
 	link.exit().remove();
 	
 	node = node.data(force.nodes(), function(d) { return d.id;});
 	node
 		.enter()
 		.append("circle")
-		.classed("node",true)
-		.on("dblclick", unpin)
-		.on("mousedown", toggle_select)
-		.call(drag);
-		//.call(addEdgeDrag);
+		.classed("node",true);
 	node.exit().remove();
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
@@ -955,6 +1141,8 @@ function update_graph()
 		.classed("label", true)
 		.text(function(d) { return d.label;});
 	label.exit().remove();
+	
+	add_event_listeners();
 	check_show_labels();
 }
 
