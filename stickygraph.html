@@ -147,12 +147,19 @@
 	y:-19;
 	rx:6;
 	ry:6;
+	width:38px;
+	height:38px;
 	pointer-events: all;
 }
 
 .edit-button-rect.selected {
 	stroke: #fc0;
 	fill: #ffeb99;
+	width:37px;
+	height:37px;
+	x:-18.5;
+	y:-18.5;
+	stroke-width:3;
 }
 
 .edit-button-path {
@@ -184,6 +191,8 @@
 	y:-19;
 	rx:6;
 	ry:6;
+	width:38px;
+	height:38px;
 	pointer-events: all;
 }
 
@@ -209,6 +218,15 @@
 
 .color-button-rect.purple {
 	fill: #c0c;
+}
+
+.color-button-rect.selected {
+	stroke: #fc0;
+	width:37px;
+	height:37px;
+	x:-18.5;
+	y:-18.5;
+	stroke-width:3;
 }
 
 #TikZ-button-text {
@@ -495,9 +513,9 @@ d3.select("body")
   .classed("color-button",true)
   .style("top", "20")
   .append("rect")
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "no-color-button")
-  .on("click", function () {color_selected(null);})
+  .on("click", function () {color_button_press(d3.select(this), null);})
   .style("fill", "black");
 
 d3.select("body")
@@ -506,9 +524,9 @@ d3.select("body")
   .style("top", "60")
   .append("rect")
   .classed("red",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "red-button")
-  .on("click", function () {color_selected("red");});
+  .on("click", function () {color_button_press(d3.select(this), "red");});
 
 d3.select("body")
   .append("svg")
@@ -516,9 +534,9 @@ d3.select("body")
   .style("top", "100")
   .append("rect")
   .classed("orange",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "orange-button")
-  .on("click", function () {color_selected("orange");});
+  .on("click", function () {color_button_press(d3.select(this), "orange");});
 
 d3.select("body")
   .append("svg")
@@ -526,9 +544,9 @@ d3.select("body")
   .style("top", "140")
   .append("rect")
   .classed("yellow",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "yellow-button")
-  .on("click", function () {color_selected("yellow");});
+  .on("click", function () {color_button_press(d3.select(this), "yellow");});
 
 d3.select("body")
   .append("svg")
@@ -536,9 +554,9 @@ d3.select("body")
   .style("top", "180")
   .append("rect")
   .classed("green",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "green-button")
-  .on("click", function () {color_selected("green");});
+  .on("click", function () {color_button_press(d3.select(this), "green");});
 
 d3.select("body")
   .append("svg")
@@ -546,9 +564,9 @@ d3.select("body")
   .style("top", "220")
   .append("rect")
   .classed("blue",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "blue-button")
-  .on("click", function () {color_selected("blue");});
+  .on("click", function () {color_button_press(d3.select(this), "blue");});
 
 d3.select("body")
   .append("svg")
@@ -556,9 +574,9 @@ d3.select("body")
   .style("top", "260")
   .append("rect")
   .classed("purple",true)
-  .classed("color-button-rect", true)
+  .classed("color-button-rect mode-button", true)
   .attr("id", "purple-button")
-  .on("click", function () {color_selected("purple");});
+  .on("click", function () {color_button_press(d3.select(this), "purple");});
 
 d3.selectAll(".color-button")
   .attr("viewBox", "-20 -20 40,40 ")
@@ -572,15 +590,6 @@ d3.selectAll(".edit-button")
 
 d3.selectAll(".edit-button-path")
   .attr("stroke-linecap","round");
-
-d3.selectAll(".edit-button-rect")
-  .attr("width", "38")
-  .attr("height", "38");
-  
-d3.selectAll(".color-button-rect")
-  .attr("width", "38")
-  .attr("height", "38");
-
 
 drawingBoard.append("rect")
     .attr("class", "overlay")
@@ -700,6 +709,8 @@ function change_mode(m, c)
 			else
 				d3.select("#" + c + "-button").classed("selected", true);
 			break;
+		default:
+			console.log("unrecognized mode:" + m);
 	}
 	add_event_listeners();
 }
@@ -708,7 +719,7 @@ function add_event_listeners()
 {
 	switch (mode)
 	{
-		case DRAGPIN: // FIX ME. clear any edge events
+		case DRAGPIN:
 			link.on("click", null)
 				.on("mousedown", toggle_select);
 			node.on("dblclick", unpin)
@@ -735,7 +746,7 @@ function add_event_listeners()
 				.on("click", null)
 				.on("mousedown", toggle_select)
 				.call(drag);
-				break;
+			break;
 		case DELETE:
 			link.on("click", function (d) {
 					delete_edge(d); update_graph(); write_g6(); force.start(); })
@@ -745,12 +756,28 @@ function add_event_listeners()
 					delete_vertex(d); update_graph(); write_g6(); force.start(); })
 				.on("mousedown", null)
 				.call(drag);
-				break;
+			break;
 		case COLOR:
-			if (c == null)
-				console.log("unsupported feature: interactive uncolor");
+			if (colorMode == null)
+			{
+				link.on("click", remove_color)
+					.on("mousedown", null);
+				node.on("dblclick", unpin)
+					.on("click", remove_color)
+					.on("mousedown", null)
+					.call(drag);
+			}
 			else
-				console.log("unsupported feature: interactive color");
+			{
+				link.on("click", function()
+						{ toggle_color(d3.select(this),colorMode); } )
+					.on("mousedown", null);
+				node.on("dblclick", unpin)
+					.on("click", function()
+						{ toggle_color(d3.select(this),colorMode); } )
+					.on("mousedown", null)
+					.call(drag);
+			}
 			break;
 	}
 }
@@ -916,7 +943,6 @@ function add_edge_button_press()
 		change_mode(DRAGPIN, null);
 	else
 		change_mode(ADDEDGE, null);
-	add_event_listeners();
 }
 
 function toggle_select(d)
@@ -925,6 +951,27 @@ function toggle_select(d)
 	{
 		var feature=d3.select(this);
 		feature.classed("selected", !feature.classed("selected"));
+	}
+}
+
+function remove_color(d)
+{
+	var feature=d3.select(this);
+	if (d3.event.shiftKey)
+		feature.classed("selected", !feature.classed("selected"));
+	else
+		feature.classed("red orange yellow green blue purple", false);
+}
+
+function toggle_color(feature, c)
+{
+	if (d3.event.shiftKey)
+		feature.classed("selected", !feature.classed("selected"));
+	else
+	{
+		var colored = feature.classed(c);
+		feature.classed("red orange yellow green blue purple", false);
+		feature.classed(c, !colored);
 	}
 }
 
@@ -957,7 +1004,6 @@ function delete_button_press()
 			change_mode(DRAGPIN, null);
 		else
 			change_mode(DELETE, null);
-		add_event_listeners();
 	}
 }
 
@@ -981,7 +1027,6 @@ function contract_button_press()
 			change_mode(DRAGPIN, null);
 		else
 			change_mode(CONTRACT, null);
-		add_event_listeners();
 		return;
 	}
 	
@@ -1059,29 +1104,30 @@ function contract_button_press()
 	}
 }
 
-function color_selected(c)
+function color_button_press(button, c)
 {
 	if (d3.event.shiftKey)
 	{
 		if (c!=null)
-		{
-			var selected = drawingBoard.selectAll("."+c)
+			drawingBoard.selectAll("."+c)
 				.classed("selected", true);
-		}
 	}
 	else
 	{
-		var selected = drawingBoard.selectAll(".selected")
-			.classed("selected", false)
-			.classed("red", false)
-			.classed("orange",false)
-			.classed("yellow", false)
-			.classed("green", false)
-			.classed("blue",false)
-			.classed("purple", false);
-		if (c != null)
+		var selected = drawingBoard.selectAll(".selected");
+		if (selected.empty())
 		{
-			selected.classed(c, true);
+			if (button.classed("selected"))
+				change_mode(DRAGPIN, null);
+			else
+				change_mode(COLOR, c);
+		}
+		else
+		{
+			selected
+				.classed("selected red orange yellow green blue purple", false);
+			if (c != null)
+				selected.classed(c, true);
 		}
 	}
 }
