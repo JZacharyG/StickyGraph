@@ -41,7 +41,6 @@
 	fill: #000;
 	stroke: #fff;
 	stroke-width: 2px;
-	r:9px;
 }
 
 .node.pinned {
@@ -50,7 +49,6 @@
 
 .node.selected {
 	stroke: #fc0;
-	r:8px;
 	stroke-width:4px;
 }
 
@@ -118,37 +116,25 @@
 
 .edit-button {
 	position:fixed;
-	right:20px;
 	pointer-events: none;
 }
 
 .edit-button-rect {
 	fill:white;
-	stroke:black;
-	stroke-width:2;
+	stroke:#aaa;
+	stroke-width:3px;
 	fill-opacity:0.8;
-	x:-19;
-	y:-19;
-	rx:6;
-	ry:6;
-	width:38px;
-	height:38px;
 	pointer-events: all;
 }
 
 .edit-button-rect.selected {
 	stroke: #fc0;
 	fill: #ffeb99;
-	width:37px;
-	height:37px;
-	x:-18.5;
-	y:-18.5;
-	stroke-width:3;
 }
 
 .edit-button-path {
 	stroke:black;
-	stroke-width:3;
+	stroke-width:3px;
 	fill:black;
 	pointer-events: none;
 }
@@ -163,20 +149,13 @@
 
 .color-button {
 	position:fixed;
-	right:20px;
 	pointer-events: none;
 }
 
 .color-button-rect {
-	stroke:black;
-	stroke-width:2;
+	stroke:#aaa;
+	stroke-width:3px;
 	fill-opacity:1;
-	x:-19;
-	y:-19;
-	rx:6;
-	ry:6;
-	width:38px;
-	height:38px;
 	pointer-events: all;
 }
 
@@ -206,30 +185,33 @@
 
 .color-button-rect.selected {
 	stroke: #fc0;
-	width:37px;
-	height:37px;
-	x:-18.5;
-	y:-18.5;
-	stroke-width:3;
 }
 
 #TikZ-button-text {
 	font-family:"Times New Roman", Times, serif;
 	text-anchor:middle;
-	dominant-baseline:central;
-	x:0;
-	y:0;
+	/* dominant-baseline:central; */
 	font-size:17px;
 	pointer-events: none;
 }
 
-#TikZ-area {
+#TikZ-div {
 	position:fixed;
 	top:45px;
 	bottom:20px;
 	left:62px;
-	width: 200px;
+	padding:0px;
+	border:0px;
+	margin-bottom:5px;
+}
+
+#TikZ-area {
+	height:100%;
+	margin:0px;
+	padding:2px;
+	border:1px solid;
 	resize:horizontal;
+	background-color:rgba(255,255,255,.8);
 	font-family:"Lucida Console", Monaco, monospace;
 }
 
@@ -265,9 +247,9 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 <label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
 </form>
  -->
-
-<textarea id="TikZ-area" style="display:none;" readonly></textarea>
-
+<div id="TikZ-div" style="display:none;">
+	<textarea id="TikZ-area" readonly></textarea>
+</div>
 
 
 
@@ -322,7 +304,7 @@ var drawingBoard = d3.select("#drawing-board-div")
 var addvButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "140");
+  .style({"right":"20px", "bottom":"140px"})
 addvButton.append("rect")
   .classed("edit-button-rect mode-button", true)
   .attr("id", "add-v-button")
@@ -339,7 +321,7 @@ addvButton.append("text")
 var addeButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "100");
+  .style({"right":"20px", "bottom":"100px"})
 addeButton.append("rect")
   .classed("edit-button-rect mode-button", true)
   .attr("id", "add-e-button")
@@ -356,7 +338,7 @@ addeButton.append("text")
 var deleteButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "60");
+  .style({"right":"20px", "bottom":"60px"})
 deleteButton.append("rect")
   .classed("edit-button-rect mode-button", true)
   .attr("id", "delete-button")
@@ -368,7 +350,7 @@ deleteButton.append("path")
 var contractButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "20");
+  .style({"right":"20px", "bottom":"20px"})
 contractButton.append("rect")
   .classed("edit-button-rect mode-button", true)
   .attr("id", "contract-button")
@@ -380,108 +362,103 @@ contractButton.append("path")
 var selectAllButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("top", "60")
-  .style("right", "60");
+  .style({right:"60px", "top":"60px"});
 selectAllButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_nodes);
 selectAllButton.append("line")
   .classed("link",true)
-  .attr({x1:0, y1:0, x2:18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
 selectAllButton.append("line")
   .classed("link", true)
-  .attr({x1:0, y1:0, x2:-18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
 selectAllButton.append("circle")
   .classed("node selected", true)
-  .attr("cx","0")
-  .attr("cy", "0");
+  .attr({cx:"0px", cy:"0px", r:"9px"});
+
 
 var selectEdgesButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("top", "100")
-  .style("right", "60");
+  .style({"right":"60px", "top":"100px"});
 selectEdgesButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_edges);
 selectEdgesButton.append("line")
   .classed("link selected",true)
-  .attr({x1:0, y1:0, x2:18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
 selectEdgesButton.append("line")
   .classed("link selected", true)
-  .attr({x1:0, y1:0, x2:-18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
 selectEdgesButton.append("circle")
   .classed("node", true)
-  .attr("cx","0")
-  .attr("cy", "0");
+  .attr({cx:"0px", cy:"0px", r:"9px"});
+
 
 var selectNoneButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("top", "20")
-  .style("right", "60");
+  .style({"right":"60px", "top":"20px"});
 selectNoneButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_none);
 selectNoneButton.append("line")
   .classed("link",true)
-  .attr({x1:0, y1:0, x2:18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
 selectNoneButton.append("line")
   .classed("link", true)
-  .attr({x1:0, y1:0, x2:-18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
 selectNoneButton.append("circle")
   .classed("node", true)
-  .attr("cx","0")
-  .attr("cy", "0");
+  .attr({cx:"0px", cy:"0px", r:"9px"});
+
 
 var pinButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("top", "60")
-  .style("right", "100");
+  .style({"right":"100px", "top":"60px"});
 pinButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", pin_all);
 pinButton.append("line")
   .classed("link",true)
-  .attr({x1:0, y1:0, x2:18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
 pinButton.append("line")
   .classed("link", true)
-  .attr({x1:0, y1:0, x2:-18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
 pinButton.append("circle")
   .classed("node pinned", true)
-  .attr("cx","0")
-  .attr("cy", "0");
+  .attr({cx:"0px", cy:"0px", r:"9px"});
+
 
 var unpinButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("top", "20")
-  .style("right", "100");
+  .style({"right":"100px", "top":"20px"});
 unpinButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", unpin_all);
 unpinButton.append("line")
   .classed("link",true)
-  .attr({x1:0, y1:0, x2:18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
 unpinButton.append("line")
   .classed("link", true)
-  .attr({x1:0, y1:0, x2:-18, y2:0});
+  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
 unpinButton.append("circle")
   .classed("node", true)
-  .attr("cx","0")
-  .attr("cy", "0");
+  .attr({cx:"0px", cy:"0px", r:"9px"});
 
 var TikZButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("left", "20")
-  .style("bottom", "60");
+  .style("left", "20px")
+  .style("bottom", "60px");
 TikZButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", generate_TikZ);
 TikZText = TikZButton.append("text")
-  .attr("id","TikZ-button-text");
+  .attr("id","TikZ-button-text")
+  .attr({x:"0px", y:"6px"});
 TikZText.append("tspan").text("Ti");
 TikZText.append("tspan").text("k").style("font-style","italic");
 TikZText.append("tspan").text("Z");
@@ -489,8 +466,8 @@ TikZText.append("tspan").text("Z");
 var labelButton = d3.select("body")
   .append("svg")
   .classed("edit-button",true)
-  .style("bottom", "20")
-  .style("left", "20")
+  .style("bottom", "20px")
+  .style("left", "20px")
 labelRect = labelButton.append("rect")
   .classed("edit-button-rect selected", true)
   .on("click", function () { 
@@ -505,7 +482,7 @@ labelButton.append("path")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "20")
+  .style({"right":"20px", "top":"20px"})
   .append("rect")
   .classed("color-button-rect mode-button", true)
   .attr("id", "no-color-button")
@@ -515,7 +492,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "60")
+  .style({"right":"20px", "top":"60px"})
   .append("rect")
   .classed("red",true)
   .classed("color-button-rect mode-button", true)
@@ -525,7 +502,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "100")
+  .style({"right":"20px", "top":"100px"})
   .append("rect")
   .classed("orange",true)
   .classed("color-button-rect mode-button", true)
@@ -535,7 +512,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "140")
+  .style({"right":"20px", "top":"140px"})
   .append("rect")
   .classed("yellow",true)
   .classed("color-button-rect mode-button", true)
@@ -545,7 +522,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "180")
+  .style({"right":"20px", "top":"180px"})
   .append("rect")
   .classed("green",true)
   .classed("color-button-rect mode-button", true)
@@ -555,7 +532,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "220")
+  .style({"right":"20px", "top":"220px"})
   .append("rect")
   .classed("blue",true)
   .classed("color-button-rect mode-button", true)
@@ -565,7 +542,7 @@ d3.select("body")
 d3.select("body")
   .append("svg")
   .classed("color-button",true)
-  .style("top", "260")
+  .style({"right":"20px", "top":"260px"})
   .append("rect")
   .classed("purple",true)
   .classed("color-button-rect mode-button", true)
@@ -573,17 +550,23 @@ d3.select("body")
   .on("click", function () {color_button_press(d3.select(this), "purple");});
 
 d3.selectAll(".color-button")
-  .attr("viewBox", "-20 -20 40,40 ")
+  .attr("viewBox", "-20 -20 40 40 ")
   .attr("width", "35")
   .attr("height", "35");
 
 d3.selectAll(".edit-button")
-  .attr("viewBox", "-20 -20 40,40 ")
+  .attr("viewBox", "-20 -20 40 40 ")
   .attr("width", "35")
   .attr("height", "35");
 
 d3.selectAll(".edit-button-path")
   .attr("stroke-linecap","round");
+
+d3.selectAll(".edit-button-rect")
+  .attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
+
+d3.selectAll(".color-button-rect")
+  .attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
 
 drawingBoard.append("rect")
     .attr("class", "overlay")
@@ -1163,7 +1146,7 @@ function generate_TikZ()
 	if (button.classed("selected") || nodes.length == 0)
 	{
 		button.classed("selected",false)
-		d3.select("#TikZ-area")
+		d3.select("#TikZ-div")
 			.style("display","none");
 		return;
 	}
@@ -1194,8 +1177,9 @@ function generate_TikZ()
 	tikz += "\n\\end{tikzpicture}";
 	
 	button.classed("selected",true);
+	d3.select("#TikZ-div")
+		.style("display",null);
 	d3.select("#TikZ-area")
-		.style("display",null)
 		.text(tikz);
 }
 
@@ -1237,7 +1221,8 @@ function update_graph()
 	node
 		.enter()
 		.append("circle")
-		.classed("node",true);
+		.classed("node",true)
+		.attr("r", "9px");
 	node.exit().remove();
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
