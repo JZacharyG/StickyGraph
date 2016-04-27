@@ -35,3 +35,7 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 
 The important thing to notice is that if you do any of these things to edit your graph, StickyGraph will update the graph6 code accordingly, so it is always easy to pull your graph back into the rest of the world.
 
+#### Labels and LaTeX Export
+
+Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you click it.  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z.  At present, it will not preserve colors or vertices or edges, only positions.
+

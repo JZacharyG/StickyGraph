@@ -54,13 +54,6 @@
 	stroke-width:4px;
 }
 
-/* 
-.node.selected {
-	fill: #fc0;
-}
- */
-
-
 .node.red {
 	fill: #f00;
 }
@@ -109,15 +102,6 @@
 	font-variant: small-caps;
  */
 }
-
-/* 
-#show-labels-form {
-	position:fixed;
-	bottom: 20px;
-	left: 20px;
-	font-family: Arial, Helvetica, sans-serif;
-}
- */
 
 #drawing-board {
     display: inline-block;
@@ -239,7 +223,17 @@
 	pointer-events: none;
 }
 
-.label, #graph-input-form, #show-labels-form, #TikZ-button-text, .edit-button-text {
+#TikZ-area {
+	position:fixed;
+	top:45px;
+	bottom:20px;
+	left:62px;
+	width: 200px;
+	resize:horizontal;
+	font-family:"Lucida Console", Monaco, monospace;
+}
+
+.label, #graph-input-form, #TikZ-button-text, .edit-button-text {
   -webkit-touch-callout: none; /* iOS Safari */
   -webkit-user-select: none;   /* Chrome/Safari/Opera */
   -khtml-user-select: none;    /* Konqueror */
@@ -272,7 +266,7 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 </form>
  -->
 
-
+<textarea id="TikZ-area" style="display:none;" readonly></textarea>
 
 
 
@@ -478,19 +472,19 @@ unpinButton.append("circle")
   .attr("cx","0")
   .attr("cy", "0");
 
-// var TikZButton = d3.select("body")
-//   .append("svg")
-//   .classed("edit-button",true)
-//   .style("left", "20")
-//   .style("bottom", "60");
-// TikZButton.append("rect")
-//   .classed("edit-button-rect", true)
-//   .on("click", generate_TikZ);
-// TikZText = TikZButton.append("text")
-//   .attr("id","TikZ-button-text");
-// TikZText.append("tspan").text("Ti");
-// TikZText.append("tspan").text("k").style("font-style","italic");
-// TikZText.append("tspan").text("Z");
+var TikZButton = d3.select("body")
+  .append("svg")
+  .classed("edit-button",true)
+  .style("left", "20")
+  .style("bottom", "60");
+TikZButton.append("rect")
+  .classed("edit-button-rect", true)
+  .on("click", generate_TikZ);
+TikZText = TikZButton.append("text")
+  .attr("id","TikZ-button-text");
+TikZText.append("tspan").text("Ti");
+TikZText.append("tspan").text("k").style("font-style","italic");
+TikZText.append("tspan").text("Z");
 
 var labelButton = d3.select("body")
   .append("svg")
@@ -627,8 +621,6 @@ var dragLink;
 
 function new_edge_drag_start(d)
 {
-	console.log(d);
-	console.log(this);
 	dragLink = drawingBoard.select("#links")
 		.append("line")
 		.classed("link", true)
@@ -679,7 +671,7 @@ function unpin(d)
 
 function pin(d)
 {
-	if (!d3.event.sourceEvent.shiftKey && !d3.event.sourceEvent.altKey)
+	if ((d3.event.sourceEvent.shiftKey || mode == COLOR)? d3.event.sourceEvent.altKey : !d3.event.sourceEvent.altKey)
 		d3.select(this).classed("pinned", d.fixed = true);
 }
 
@@ -849,39 +841,65 @@ function delete_edge(d)
 	}
 }
 
-
-
-function contract_edge(d)
+function contract_edge(d, toDelete)
 {
+	if (d.source.id == d.target.id)
+		return;
+	var deleteNow = false;
+	if (toDelete == null) // then delete the edges in this function
+	{
+		toDelete = [];
+		toDelete.length = links.length;
+		for (var i = 0; i < links.length; i++)
+			toDelete[i] = false;
+		deleteNow = true;
+	}
+	
 	var adj=[];
 	adj.length = nodes.length;
 	for (var i = 0; i < nodes.length; i++)
 		adj[i] = false;
 	var v1 = Math.min(d.source.label, d.target.label);
 	var v2 = Math.max(d.source.label, d.target.label);
-	for (var i = 0; i < links.length;)
+	
+	for (var i = 0; i < links.length;i++)
 	{
 		var l = links[i];
-		if (l.source.label == v1 || l.source.label == v2)
+		
+		if ((l.source.label == v1 && l.target.label == v2) || (l.target.label == v1 && l.source.label == v2))
 		{
+			toDelete[i] = true;
+			l.source = l.target = nodes[v1];
+		}
+		else if (l.source.label == v1 || l.source.label == v2)
+		{
+			if (adj[l.target.label])
+				toDelete[i] = true;
 			adj[l.target.label] = true;
-			links[i] = links[links.length-1];
-			links.length--;
+			l.source = nodes[v1];
 		}
 		else if (l.target.label == v1 || l.target.label == v2)
 		{
+			if (adj[l.source.label])
+				toDelete[i] = true;
 			adj[l.source.label] = true;
-			links[i] = links[links.length-1];
-			links.length--;
+			l.target = nodes[v1];
 		}
-		else
-			i++;
 	}
 	
 	adj[d.source.label] = adj[d.target.label] = false;
 	
-	for (var i = 0; i < nodes.length; i++) if (adj[i])
-		links.push({source:nodes[i], target:nodes[v1]});
+	if (deleteNow)
+	{
+		for (var i = links.length - 1; i >= 0; i--)
+		{
+			if (toDelete[i])
+			{
+				links[i] = links[links.length-1];
+				links.length--;
+			}
+		}
+	}
 	var avgx = (nodes[v1].x + nodes[v2].x)/2;
 	var avgy = (nodes[v1].y + nodes[v2].y)/2;
 	nodes[v1].px = avgx;
@@ -889,7 +907,6 @@ function contract_edge(d)
 	nodes[v1].x = avgx;
 	nodes[v1].y = avgy;
 	
-	console.log(v2)
 	delete_vertex(nodes[v2]);
 	
 	if (d3.event.shiftKey)
@@ -1016,8 +1033,6 @@ function contract_button_press()
 	adj.length = nodes.length;
 	for (var i = 0; i < nodes.length; i++)
 		toContract[i] = adj[i] = false;
-	
-	
 	selectedNodes = drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.label] = true;} );
 	selectedLinks = drawingBoard.selectAll(".link.selected");
 	
@@ -1032,7 +1047,16 @@ function contract_button_press()
 	
 	if (selectedNodes.empty())
 	{
-		selectedLinks.each( contract_edge );
+		toDelete = [];
+		toDelete.length = links.length;
+		for (var i = 0; i < links.length; i++)
+			toDelete[i] = false;
+		selectedLinks.each( function(d) { contract_edge(d, toDelete) } );
+		for (var i = links.length - 1; i >= 0; i--) if (toDelete[i])
+		{
+			links[i] = links[links.length-1];
+			links.length--;
+		}
 		update_graph();
 		write_g6();
 		force.start();
@@ -1134,12 +1158,49 @@ function color_button_press(button, c)
 
 function generate_TikZ()
 {
-	alert("TikZ");
+	button = d3.select(this);
+	
+	if (button.classed("selected") || nodes.length == 0)
+	{
+		button.classed("selected",false)
+		d3.select("#TikZ-area")
+			.style("display","none");
+		return;
+	}
+	
+	d3
+	tikz = "\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
+	var min = Number.MAX_VALUE,
+	    max = Number.MIN_VALUE;
+	var printLabels = labelRect.classed("selected");
+
+	for (var i = 0; i < nodes.length; i++)
+	{
+		min = Math.min(min, nodes[i].x);
+		max = Math.max(max, nodes[i].x);
+	}
+	
+	for (var i = 0; i < nodes.length; i++)
+	{
+		tikz += "\n\\node[vertex";
+		if (printLabels)
+			tikz += ", label=above:" + nodes[i].label;
+		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].label + ") {};";
+	}
+	
+	for (var i = 0; i < links.length; i++)
+		tikz += "\n\\draw[edge] (v" + links[i].target.label + ") to (v" + links[i].source.label + ");";
+	
+	tikz += "\n\\end{tikzpicture}";
+	
+	button.classed("selected",true);
+	d3.select("#TikZ-area")
+		.style("display",null)
+		.text(tikz);
 }
 
 function check_show_labels()
 {
-//	console.log(labelRect);
 	if (labelRect.classed("selected"))
 		label.attr("visibility", "visible");
 	else
