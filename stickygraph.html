@@ -169,9 +169,8 @@
 
 </style>
 <body>
-<!-- 
-<script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
- -->
+<!-- <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script> -->
+
 <script src="d3.min.js"></script>
 
 
@@ -576,7 +575,7 @@ function new_edge_drag_end(d1)
 				if (links[i].source.id == d1.id && links[i].target.id == d2.id ||
 					links[i].source.id == d2.id && links[i].target.id == d1.id)
 					return;
-			links.push({source:d1, target:d2});
+			links.push({source:d1, target:d2, color:null});
 			update_graph();
 			if (d3.event.sourceEvent.shiftKey)
 				drawingBoard.selectAll(".link")
@@ -726,7 +725,7 @@ function select_none()
 
 function new_vertex()
 {
-	var newv = {id:nextID, label:nodes.length, x:getRandom(0,width), y:getRandom(0,height)};
+	var newv = {id:nextID, label:nodes.length, x:getRandom(0,width), y:getRandom(0,height), color:null};
 	nodes.push(newv);
 	nextID++;
 	return newv;
@@ -843,7 +842,7 @@ function contract_edge(d, toDelete)
 function split_edge(d)
 {
 	var newv = new_vertex();
-	links.push({source:newv, target:d.source});
+	links.push({source:newv, target:d.source, color:null});
 	d.source = newv;
 }
 
@@ -864,7 +863,7 @@ function add_vertex_button_press()
 	if (!selected.empty() || !edges_selected)
 	{
 		var newv = new_vertex();
-		selected.each(function (d,i) { links.push({source:newv, target: d}); });
+		selected.each(function (d,i) { links.push({source:newv, target: d, color:null}); });
 		update_graph();
 		if (d3.event.shiftKey)
 			drawingBoard.selectAll(".node")
@@ -902,7 +901,8 @@ function remove_color(d)
 	if (d3.event.shiftKey)
 		feature.classed("selected", !feature.classed("selected"));
 	else
-		feature.classed("red orange yellow green blue purple", false);
+		feature.classed("red orange yellow green blue purple", false)
+		.each(function(d,i) {d.color=null});
 }
 
 function toggle_color(feature, c)
@@ -912,8 +912,10 @@ function toggle_color(feature, c)
 	else
 	{
 		var colored = feature.classed(c);
-		feature.classed("red orange yellow green blue purple", false);
-		feature.classed(c, !colored);
+		feature.classed("red orange yellow green blue purple", false).each(function(d,i) {d.color=null});
+		
+		if (!colored)
+			feature.classed(c, true).each(function(d,i) {d.color=c});
 	}
 }
 
@@ -1038,7 +1040,7 @@ function contract_button_press()
 			if (toContract[i]) // we won't delete a vertex before newv, and we don't
 				delete_vertex(nodes[i]); // look at toContract or adj past where we
 			else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
-				links.push({source:nodes[i], target:nodes[newv]}); // anything.
+				links.push({source:nodes[i], target:nodes[newv], color:null}); // anything.
 		}
 	
 		update_graph();
@@ -1074,9 +1076,12 @@ function color_button_press(button, c)
 		else
 		{
 			selected
-				.classed("selected red orange yellow green blue purple", false);
+				.classed("selected red orange yellow green blue purple", false)
+				.each(function(d,i) {d.color=c});
 			if (c != null)
+			{
 				selected.classed(c, true);
+			}
 		}
 	}
 }
@@ -1094,7 +1099,7 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
+	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
 	var min = Number.MAX_VALUE,
 	    max = Number.MIN_VALUE;
 	var printLabels = labelRect.classed("selected");
@@ -1107,14 +1112,21 @@ function generate_TikZ()
 	
 	for (var i = 0; i < nodes.length; i++)
 	{
-		tikz += "\n\\node[vertex";
+		tikz += "\n\t\\node[vertex";
+		if (nodes[i].color != null)
+			tikz += ", " + nodes[i].color;
 		if (printLabels)
 			tikz += ", label=above:" + nodes[i].label;
 		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].label + ") {};";
 	}
 	
 	for (var i = 0; i < links.length; i++)
-		tikz += "\n\\draw[edge] (v" + links[i].target.label + ") to (v" + links[i].source.label + ");";
+	{
+		tikz += "\n\t\\draw[edge";
+		if (links[i].color != null)
+			tikz += ", " + links[i].color;
+		tikz += "] (v" + links[i].target.label + ") to (v" + links[i].source.label + ");";
+	}
 	
 	tikz += "\n\\end{tikzpicture}";
 	
@@ -1236,7 +1248,7 @@ function load_g6(form)
 
 	for (nextID=0; nextID<nv; nextID++)
 	{
-		nodes[nextID]={id:nextID, label:nextID, x:getRandom(0,width), y:getRandom(0,height)};
+		nodes[nextID]={id:nextID, label:nextID, x:getRandom(0,width), y:getRandom(0,height), color:null};
 	}
 	g6i++;
 	
@@ -1265,7 +1277,7 @@ function load_g6(form)
 			}
 			if ((x >> 5) & 1)
 			{
-				links.push({source:nodes[i], target:nodes[j]});
+				links.push({source:nodes[i], target:nodes[j], color:null});
 			}
 			x <<= 1;
 		}
