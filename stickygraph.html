@@ -568,12 +568,19 @@ function xor(a,b)
 	return a?!b:b;
 }
 
+function dist(x1,y1,x2,y2)
+{
+	return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
+}
+
 var drag = force.drag()
 	.on("dragstart", drag_pin_drag_start)
 	.on("drag", drag_pin_drag)
 	.on("dragend", drag_pin_end);
 var shift_at_drag_start;
 var pinned_at_drag_start;
+var x0, y0;
+
 
 function drag_pin_drag_start(d)
 {
@@ -583,19 +590,20 @@ function drag_pin_drag_start(d)
 		shift_at_drag_start = false;
 	pinned_at_drag_start = d3.select(this).classed("pinned");
 	
+	x0 = d.x;
+	y0 = d.y;
+	
 	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
 	d3.select(this).classed("pinned", pinNode);
-	
-	drawingBoard.selectAll(".link")
-					.filter(function (dl) { return dl.source.id == d.id || dl.target.id == d.id; })
-					.each(function (dl) {delete dl.controlx; delete dl.controly;})
-					.attr("d", get_edge_path);
 }
 
 function drag_pin_drag(d)
 {
 	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
 	d3.select(this).classed("pinned", pinNode);
+	
+	if (dist(d.x,d.y,x0,y0)>20)
+		straighten_nbr_edges(d);
 }
 
 function drag_pin_end(d)
@@ -644,11 +652,11 @@ function new_edge_drag_end(d1)
 		d2 = v2.datum();
 		if (d2.id != d1.id) // and if the edge isn't already there
 		{
-			save_state();
 			for (var i = 0; i < links.length; i++)
 				if (links[i].source.id == d1.id && links[i].target.id == d2.id ||
 					links[i].source.id == d2.id && links[i].target.id == d1.id)
 					return;
+			save_state();
 			links.push({source:d1, target:d2, color:""});
 			update_graph();
 			if (d3.event.sourceEvent.shiftKey)
@@ -677,16 +685,26 @@ function get_edge_path(d)
 	return coords.join(" ");
 }
 
+function straighten_nbr_edges(d)
+{
+	drawingBoard.selectAll(".link")
+		.filter(function (l) { return l.source.id == d.id || l.target.id == d.id; })
+		.each(function (l) {delete l.controlx; delete l.controly;})
+		.attr("d", get_edge_path);
+}
+
+var source_pinned, target_pinned;
+
 function curve_edge_drag_start(d)
 {
-// 	console.log(d3.event);
-	d3.select("#v"+d.source.label).each(pin);
-	d3.select("#v"+d.target.label).each(pin);
+	source_pinned = d.source.fixed;
+	d.source.fixed = 1;
+	target_pinned = d.target.fixed;
+	d.target.fixed = 1;
 }
 
 function curve_edge_drag(d)
 {
-// 	console.log(d3.event);
 	d.controlx = d3.event.x;
 	d.controly = d3.event.y;
 	d3.select(this).attr("d", get_edge_path);
@@ -699,8 +717,19 @@ function curve_edge_drag(d)
 
 function curve_edge_drag_end(d)
 {
-	// d3.select(this).attr("d", get_edge_path);
-// 	console.log(d3.event);
+	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.1*dist(d.source.x, d.source.y, d.target.x, d.target.y))
+	{
+		d3.select("#v"+d.source.label).each(pin);
+		d3.select("#v"+d.target.label).each(pin);
+	}
+	else
+	{
+		delete d.controlx;
+		delete d.controly;
+		d.source.fixed = source_pinned;
+		d.target.fixed = target_pinned;
+		d3.select(this).attr("d", get_edge_path);
+	}
 }
 
 function unpin(d)
@@ -708,6 +737,7 @@ function unpin(d)
 	if (d.fixed)
 	{
 		d3.select(this).classed("pinned", d.fixed = 0);
+		straighten_nbr_edges(d);
 		force.resume();
 	}
 }
@@ -967,8 +997,21 @@ function contract_edge(d, toDelete)
 function split_edge(d)
 {
 	var newv = new_vertex();
-	links.push({source:newv, target:d.source, color:""});
-	// FIX ME: add original color to new edge
+	if ("controlx" in d)
+	{
+		newv.x = d.controlx;
+		newv.y = d.controly;
+		delete d.controlx;
+		delete d.controly;
+	}
+	else
+	{
+		newv.x = (d.source.x+d.target.x)/2;
+		newv.y = (d.source.y+d.target.y)/2;
+	}
+	if (d.source.fixed && d.target.fixed)
+		newv.fixed = 1;
+	links.push({source:newv, target:d.source, color:d.color}); // leave it to update_graph to assign the color's class, pinned-ness
 	d.source = newv;
 }
 
@@ -996,8 +1039,6 @@ function add_vertex_button_press()
 			drawingBoard.select("#v"+newv.label)
 				.classed("selected", true);
 	}
-	
-	
 	
 	write_g6();
 	force.start();
@@ -1290,7 +1331,8 @@ function update_graph()
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter()
 		.append("path")
-		.attr("class", "link");
+		.attr("class", "link")
+		.each(function(d) {d3.select(this).classed(d.color, true);});
 	link.exit().remove();
 	
 	node = node.data(force.nodes(), function(d) { return d.id;});
@@ -1299,7 +1341,9 @@ function update_graph()
 		.append("circle")
 		.classed("node", true)
 		.attr("id", function(d) {return "v"+d.label;})
-		.attr("r", "9px");
+		.attr("r", "9px")
+		.each(function(d) {d3.select(this).classed(d.color, true);})
+		.classed("pinned", function(d) {return d.fixed;});
 	node.exit().remove();
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
@@ -1439,9 +1483,6 @@ function load_state(state)
 		links.push(l);
     nextID = state.nextID;
 	update_graph();
-	node.classed("pinned", function(d) {return d.fixed;});
-	node.each(function(d) {d3.select(this).classed(d.color, true);});
-	link.each(function(d) {d3.select(this).classed(d.color, true);});
 	write_g6();
 	force.start();
 }
