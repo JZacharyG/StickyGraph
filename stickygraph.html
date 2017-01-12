@@ -742,8 +742,6 @@ function unpin(d)
 	}
 }
 
-
-
 function pin(d)
 {
 	d3.select(this).classed("pinned", d.fixed = 1);
@@ -1295,7 +1293,14 @@ function generate_TikZ()
 		tikz += "\n\t\\draw[edge";
 		if (links[i].color != "")
 			tikz += ", " + links[i].color;
-		tikz += "] (v" + links[i].target.label + ") to (v" + links[i].source.label + ");";
+		tikz += "] (v" + links[i].target.label + ") ";
+		if ("controlx" in links[i])
+		{
+			tikz += ".. controls (" + (links[i].controlx/(max-min)).toFixed(3) + ", " + (-links[i].controly/(max-min)).toFixed(3) + ") .."
+		}
+		else
+			tikz += "to";
+		tikz+= " (v" + links[i].source.label + ");";
 	}
 	
 	tikz += "\n\\end{tikzpicture}";
