@@ -562,8 +562,44 @@ function getRandom(min, max)
 	return Math.random() * (max - min) + min;
 }
 
+function xor(a,b)
+{
+	return a?!b:b;
+}
+
 var drag = force.drag()
-	.on("dragstart", pin);
+	.on("dragstart", drag_pin_drag_start)
+	.on("drag", drag_pin_drag)
+	.on("dragend", drag_pin_end);
+var shift_at_drag_start;
+var pinned_at_drag_start;
+function drag_pin_drag_start(d)
+{
+	if (d3.event.sourceEvent.shiftKey)
+		shift_at_drag_start = true;
+	else
+		shift_at_drag_start = false;
+	pinned_at_drag_start = d3.select(this).classed("pinned");
+	
+	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
+	d3.select(this).classed("pinned", pinNode);
+}
+
+function drag_pin_drag(d)
+{
+	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
+	d3.select(this).classed("pinned", pinNode);
+}
+
+function drag_pin_end(d)
+{
+	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
+	if (pinNode)
+		d3.select(this).each(pin);
+	else
+		d3.select(this).each(unpin);
+}
+
 var addEdgeDrag = d3.behavior.drag()
 	.on("dragstart", new_edge_drag_start)
 	.on("drag", new_edge_drag)
@@ -617,14 +653,18 @@ function new_edge_drag_end(d1)
 
 function unpin(d)
 {
-	d3.select(this).classed("pinned", d.fixed = 0);
-	force.resume();
+	if (d.fixed)
+	{
+		d3.select(this).classed("pinned", d.fixed = 0);
+		force.resume();
+	}
 }
+
+
 
 function pin(d)
 {
-	if ((d3.event.sourceEvent.shiftKey || mode == COLOR)? d3.event.sourceEvent.altKey : !d3.event.sourceEvent.altKey)
-		d3.select(this).classed("pinned", d.fixed = 1);
+	d3.select(this).classed("pinned", d.fixed = 1);
 }
 
 function change_mode(m, c)
@@ -704,22 +744,22 @@ function add_event_listeners()
 		case COLOR:
 			if (colorMode == "")
 			{
-				link.on("click", remove_color)
-					.on("mousedown", null);
+				link.on("click", null)
+					.on("mousedown", remove_color);
 				node.on("dblclick", unpin)
-					.on("click", remove_color)
-					.on("mousedown", null)
+					.on("click", null)
+					.on("mousedown", remove_color)
 					.call(drag);
 			}
 			else
 			{
-				link.on("click", function()
-						{ toggle_color(d3.select(this),colorMode); } )
-					.on("mousedown", null);
+				link.on("click", null )
+					.on("mousedown", function()
+						{ toggle_color(d3.select(this),colorMode); });
 				node.on("dblclick", unpin)
-					.on("click", function()
-						{ toggle_color(d3.select(this),colorMode); } )
-					.on("mousedown", null)
+					.on("click", null)
+					.on("mousedown", function()
+						{ toggle_color(d3.select(this),colorMode); })
 					.call(drag);
 			}
 			break;
