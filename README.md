@@ -16,7 +16,7 @@ The first thing you should most certainly do is to download or clone this reposi
 
 You can now type a graph6-encoded graph into the box at the top left and hit enter (If you want a place to start, the Petersen Graph is given by `IheA@GUAo`).  StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms to accommodate.  You can always double click a vertex later if you want to unpin it.
 
-If you hold the `alt`/`option` key while moving a vertex, it won't There are also buttons up at the top to pin and unpin all vertices (they look like a pinned vertex and an unpinned vertex respectively).
+If you hold the `alt`/`option` key while moving a vertex, it won't pin, which can be useful sometimes. There are also buttons up at the top to pin and unpin all vertices (they look like a pinned vertex and an unpinned vertex respectively).
 
 #### Selecting and Coloring
 
