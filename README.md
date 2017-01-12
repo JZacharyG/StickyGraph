@@ -33,9 +33,11 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
 - The **contract button** does a couple of slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't do anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
-The important thing to notice is that if you do any of these things to edit your graph, StickyGraph will update the graph6 code accordingly, so it is always easy to pull your graph back into the rest of the world.
+If you choose to edit your graph in any way, StickyGraph will update the graph6 code accordingly, so it is always easy to pull your graph back into the rest of the world.
+
+Don't like the changes you've made?  StickyGraph has got your back with some **undo** and **redo** buttons down in the bottom left.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
 #### Labels and LaTeX Export
 
-Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you click it.  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z.
+Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, elements will be colored as you have colored them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z.
 
