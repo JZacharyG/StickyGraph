@@ -33,6 +33,7 @@
 
 
 .link {
+  fill:none;
   stroke: #999;
   stroke-width: 3px;
 }
@@ -310,12 +311,12 @@ var selectAllButton = d3.select("body")
 selectAllButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_nodes);
-selectAllButton.append("line")
+selectAllButton.append("path")
   .classed("link",true)
-  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
-selectAllButton.append("line")
+  .attr("d","M 0 0 L 17 0");
+selectAllButton.append("path")
   .classed("link", true)
-  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
+  .attr("d", "M 0 0 L -17 0");
 selectAllButton.append("circle")
   .classed("node selected", true)
   .attr({cx:"0px", cy:"0px", r:"9px"});
@@ -328,12 +329,12 @@ var selectEdgesButton = d3.select("body")
 selectEdgesButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_all_edges);
-selectEdgesButton.append("line")
+selectEdgesButton.append("path")
   .classed("link selected",true)
-  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
-selectEdgesButton.append("line")
+  .attr("d","M 0 0 L 17 0");
+selectEdgesButton.append("path")
   .classed("link selected", true)
-  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
+  .attr("d", "M 0 0 L -17 0");
 selectEdgesButton.append("circle")
   .classed("node", true)
   .attr({cx:"0px", cy:"0px", r:"9px"});
@@ -346,12 +347,12 @@ var selectNoneButton = d3.select("body")
 selectNoneButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", select_none);
-selectNoneButton.append("line")
+selectNoneButton.append("path")
   .classed("link",true)
-  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
-selectNoneButton.append("line")
+  .attr("d","M 0 0 L 17 0");
+selectNoneButton.append("path")
   .classed("link", true)
-  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
+  .attr("d", "M 0 0 L -17 0");
 selectNoneButton.append("circle")
   .classed("node", true)
   .attr({cx:"0px", cy:"0px", r:"9px"});
@@ -364,12 +365,12 @@ var pinButton = d3.select("body")
 pinButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", pin_all);
-pinButton.append("line")
+pinButton.append("path")
   .classed("link",true)
-  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
-pinButton.append("line")
+  .attr("d","M 0 0 L 17 0");
+pinButton.append("path")
   .classed("link", true)
-  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
+  .attr("d", "M 0 0 L -17 0");
 pinButton.append("circle")
   .classed("node pinned", true)
   .attr({cx:"0px", cy:"0px", r:"9px"});
@@ -382,12 +383,12 @@ var unpinButton = d3.select("body")
 unpinButton.append("rect")
   .classed("edit-button-rect", true)
   .on("click", unpin_all);
-unpinButton.append("line")
+unpinButton.append("path")
   .classed("link",true)
-  .attr({x1:"0px", y1:"0px", x2:"17px", y2:"0px"});
-unpinButton.append("line")
+  .attr("d","M 0 0 L 17 0");
+unpinButton.append("path")
   .classed("link", true)
-  .attr({x1:"0px", y1:"0px", x2:"-17px", y2:"0px"});
+  .attr("d", "M 0 0 L -17 0");
 unpinButton.append("circle")
   .classed("node", true)
   .attr({cx:"0px", cy:"0px", r:"9px"});
@@ -573,6 +574,7 @@ var drag = force.drag()
 	.on("dragend", drag_pin_end);
 var shift_at_drag_start;
 var pinned_at_drag_start;
+
 function drag_pin_drag_start(d)
 {
 	if (d3.event.sourceEvent.shiftKey)
@@ -583,6 +585,11 @@ function drag_pin_drag_start(d)
 	
 	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
 	d3.select(this).classed("pinned", pinNode);
+	
+	drawingBoard.selectAll(".link")
+					.filter(function (dl) { return dl.source.id == d.id || dl.target.id == d.id; })
+					.each(function (dl) {delete dl.controlx; delete dl.controly;})
+					.attr("d", get_edge_path);
 }
 
 function drag_pin_drag(d)
@@ -600,11 +607,14 @@ function drag_pin_end(d)
 		d3.select(this).each(unpin);
 }
 
+var noDrag = d3.behavior.drag();
+
 var addEdgeDrag = d3.behavior.drag()
 	.on("dragstart", new_edge_drag_start)
 	.on("drag", new_edge_drag)
 	.on("dragend", new_edge_drag_end);
-var dragLink; // replace this with an edge with a known id, so that we don't need a global variable to keep track of it?  debatable.
+
+var dragLink;
 
 function new_edge_drag_start(d)
 {
@@ -649,6 +659,48 @@ function new_edge_drag_end(d1)
 			force.start();
 		}
 	}
+}
+
+var curveEdgeDrag = d3.behavior.drag()
+	.on("dragstart", curve_edge_drag_start)
+	.on("drag", curve_edge_drag)
+	.on("dragend", curve_edge_drag_end);
+var dragLink; // replace this with an edge with a known id, so that we don't need a global variable to keep track of it?  debatable.
+
+function get_edge_path(d)
+{
+	var coords;
+	if ("controlx" in d)
+		coords = ["M", d.source.x, d.source.y, "Q", d.controlx, d.controly, d.target.x, d.target.y];
+	else
+		coords = ["M", d.source.x, d.source.y, "L", d.target.x, d.target.y];
+	return coords.join(" ");
+}
+
+function curve_edge_drag_start(d)
+{
+// 	console.log(d3.event);
+	d3.select("#v"+d.source.label).each(pin);
+	d3.select("#v"+d.target.label).each(pin);
+}
+
+function curve_edge_drag(d)
+{
+// 	console.log(d3.event);
+	d.controlx = d3.event.x;
+	d.controly = d3.event.y;
+	d3.select(this).attr("d", get_edge_path);
+	
+// 	if (d3.event.sourceEvent.shiftKey)
+// 		dragLink.classed("selected", true);
+// 	else
+// 		dragLink.classed("selected", false);
+}
+
+function curve_edge_drag_end(d)
+{
+	// d3.select(this).attr("d", get_edge_path);
+// 	console.log(d3.event);
 }
 
 function unpin(d)
@@ -705,7 +757,8 @@ function add_event_listeners()
 	{
 		case DRAGPIN:
 			link.on("click", null)
-				.on("mousedown", toggle_select);
+				.on("mousedown", toggle_select)
+				.call(curveEdgeDrag);
 			node.on("dblclick", unpin)
 				.on("click", null)
 				.on("mousedown", toggle_select)
@@ -713,7 +766,8 @@ function add_event_listeners()
 		break;
 		case ADDEDGE:
 			link.on("click", null)
-				.on("mousedown", toggle_select);
+				.on("mousedown", toggle_select)
+				.call(noDrag);
 			node.on("click", toggle_select)
 				.on("dblclick", null)
 				.on("mousedown", null)
@@ -725,7 +779,8 @@ function add_event_listeners()
 		case CONTRACT:
 			link.on("click", function (d) {
 					save_state(); contract_edge(d); update_graph(); write_g6(); force.start(); })
-				.on("mousedown", null);
+				.on("mousedown", null)
+				.call(noDrag);
 			node.on("dblclick", unpin)
 				.on("click", null)
 				.on("mousedown", toggle_select)
@@ -734,18 +789,20 @@ function add_event_listeners()
 		case DELETE:
 			link.on("click", function (d) {
 					save_state(); delete_edge(d); update_graph(); write_g6(); force.start(); })
-				.on("mousedown", null);
+				.on("mousedown", null)
+				.call(noDrag);
 			node.on("dblclick", null)
 				.on("click",  function (d) {
 					save_state(); delete_vertex(d); update_graph(); write_g6(); force.start(); })
 				.on("mousedown", null)
-				.call(drag);
+				.call(noDrag);
 			break;
 		case COLOR:
 			if (colorMode == "")
 			{
 				link.on("click", null)
-					.on("mousedown", remove_color);
+					.on("mousedown", remove_color)
+					.call(curveEdgeDrag);
 				node.on("dblclick", unpin)
 					.on("click", null)
 					.on("mousedown", remove_color)
@@ -755,7 +812,8 @@ function add_event_listeners()
 			{
 				link.on("click", null )
 					.on("mousedown", function()
-						{ toggle_color(d3.select(this),colorMode); });
+						{ toggle_color(d3.select(this),colorMode); })
+					.call(curveEdgeDrag);
 				node.on("dblclick", unpin)
 					.on("click", null)
 					.on("mousedown", function()
@@ -902,8 +960,7 @@ function contract_edge(d, toDelete)
 	delete_vertex(nodes[v2]);
 	
 	if (d3.event.shiftKey)
-			drawingBoard.selectAll(".node")
-				.filter(function (d) { return d.label == v1; })
+			drawingBoard.select("#v"+v1)
 				.classed("selected", true);
 }
 
@@ -936,8 +993,7 @@ function add_vertex_button_press()
 		selected.each(function (d,i) { links.push({source:newv, target: d, color:""}); });
 		update_graph();
 		if (d3.event.shiftKey)
-			drawingBoard.selectAll(".node")
-				.filter(function (d) { return d.label == newv.label; })
+			drawingBoard.select("#v"+newv.label)
 				.classed("selected", true);
 	}
 	
@@ -1122,8 +1178,7 @@ function contract_button_press()
 	
 		update_graph();
 		if (d3.event.shiftKey)
-			drawingBoard.selectAll(".node")
-				.filter(function (d) { return d.label == newv; })
+			drawingBoard.select("#v"+newv)
 				.classed("selected", true);
 		else
 			select_none();
@@ -1234,7 +1289,7 @@ function update_graph()
 {
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
 	link.enter()
-		.append("line")
+		.append("path")
 		.attr("class", "link");
 	link.exit().remove();
 	
@@ -1242,7 +1297,8 @@ function update_graph()
 	node
 		.enter()
 		.append("circle")
-		.classed("node",true)
+		.classed("node", true)
+		.attr("id", function(d) {return "v"+d.label;})
 		.attr("r", "9px");
 	node.exit().remove();
 	
@@ -1264,10 +1320,7 @@ function tick()
 	node.attr("cx", function(d) { return d.x; })
 	    .attr("cy", function(d) { return d.y; });
 	
-	link.attr("x1", function(d) { return d.source.x; })
-	    .attr("y1", function(d) { return d.source.y; })
-	    .attr("x2", function(d) { return d.target.x; })
-	    .attr("y2", function(d) { return d.target.y; });
+	link.attr("d", get_edge_path);
 	
 	label.attr("x", function(d) { return d.x; })
 	     .attr("y", function(d) { return d.y; })
@@ -1361,7 +1414,11 @@ function get_state()
 	var linksClone = [];
 	for (l of links)
 	{
-		linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color});
+		if ("controlx" in l)
+			linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color, controlx:l.controlx, controly:l.controly});
+		else
+			linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color});
+		
 	}
 	return {nodes:nodesClone, links:linksClone, nextID:nextID};
 }
