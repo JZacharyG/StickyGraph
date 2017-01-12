@@ -35,7 +35,7 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 
 If you choose to edit your graph in any way, StickyGraph will update the graph6 code accordingly, so it is always easy to pull your graph back into the rest of the world.
 
-Don't like the changes you've made?  StickyGraph has got your back with some **undo** and **redo** buttons down in the bottom left.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
+Don't like the changes you've made?  StickyGraph has you covered with some **undo** and **redo** buttons down at the bottom.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
 #### Labels and LaTeX Export
 
