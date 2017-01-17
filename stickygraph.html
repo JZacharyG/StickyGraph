@@ -1,5 +1,7 @@
 <!DOCTYPE html>
+<html>
 <meta charset="utf-8">
+<title>Sticky Graph</title>
 <style>
 
 #drawing-board-div {
@@ -29,8 +31,6 @@
 .node.pinned {
 	stroke: #999;
 }
-
-
 
 .link {
   fill:none;
@@ -189,9 +189,6 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 <label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
 </form>
  -->
-<div id="TikZ-div" style="display:none;">
-	<textarea id="TikZ-area" readonly></textarea>
-</div>
 
 
 
@@ -206,8 +203,8 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 
 <script>
 
-var width = 1300,
-    height = 700;
+var width = window.innerWidth,
+    height = window.innerHeight;
 
 const DRAGPIN   = 0, // modes
       ADDEDGE   = 1,
@@ -243,8 +240,7 @@ var zoom = d3.behavior.zoom();
 var drawingBoard = d3.select("#drawing-board-div")
 	.append("svg")
 	.attr("id", "drawing-board")
-	.attr("preserveAspectRatio", "xMinYMin meet")
-	.attr("viewBox", "0 0 "+width+" "+height);
+	.attr("preserveAspectRatio", "xMinYMin meet");
 
 var addvButton = d3.select("body")
   .append("svg")
@@ -414,7 +410,7 @@ var labelButton = d3.select("body")
   .style("bottom", "10px")
   .style("left", "10px")
 labelRect = labelButton.append("rect")
-  .classed("edit-button-rect selected", true)
+  .classed("edit-button-rect",true)
   .on("click", function () { 
   		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
   		check_show_labels(); });
@@ -537,11 +533,23 @@ d3.selectAll(".edit-button-rect")
 d3.selectAll(".color-button-rect")
   .attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
 
+d3.select("body").append("div").attr("id", "TikZ-div").style("display", "none").append("textarea").attr("id", "TikZ-area").attr("readonly", true).style("width", ""+(width/3)+"px");
+
 drawingBoard.append("rect")
     .attr("class", "overlay")
     .attr("width", 100*width)
     .attr("height", 100*height)
     .call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
+
+resize();
+d3.select(window).on("resize", resize);
+
+function resize() {
+	windowWidth = window.innerWidth, windowHeight = window.innerHeight;
+	dx = (windowWidth-width)/2, dy = (windowHeight-height)/2;
+	drawingBoard.attr("viewBox", ""+(-dx)+" "+(-dy)+" "+(windowWidth)+" "+(windowHeight));
+	d3.select("#TikZ-area").style("max-width", ""+(windowWidth-110)+"px");
+}
 
 var zoomable = drawingBoard.append("g");
 
@@ -558,20 +566,11 @@ function zoomHandler()
 	zoomable.attr("transform", "translate(" + d3.event.translate + ")scale(" + d3.event.scale + ")");
 }
 
-function getRandom(min, max)
-{
-	return Math.random() * (max - min) + min;
-}
+function getRandom(min, max) { return Math.random() * (max - min) + min; }
 
-function xor(a,b)
-{
-	return a?!b:b;
-}
+function xor(a,b) { return a?!b:b; }
 
-function dist(x1,y1,x2,y2)
-{
-	return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2));
-}
+function dist(x1,y1,x2,y2) { return Math.sqrt((x1-x2)*(x1-x2) + (y1-y2)*(y1-y2)); }
 
 var drag = force.drag()
 	.on("dragstart", drag_pin_drag_start)
@@ -795,7 +794,7 @@ function add_event_listeners()
 		case ADDEDGE:
 			link.on("click", null)
 				.on("mousedown", toggle_select)
-				.call(noDrag);
+				.call(curveEdgeDrag);
 			node.on("click", toggle_select)
 				.on("dblclick", null)
 				.on("mousedown", null)
@@ -852,30 +851,15 @@ function add_event_listeners()
 	}
 }
 
-function pin_all()
-{
-	drawingBoard.selectAll(".node").each(function (d) { d3.select(this).classed("pinned", d.fixed = 1); });
-}
+function pin_all() { node.each(pin); }
 
-function unpin_all()
-{
-	drawingBoard.selectAll(".node").each(unpin);
-}
+function unpin_all() { node.each(unpin); }
 
-function select_all_nodes()
-{
-	drawingBoard.selectAll(".node").classed("selected", true);
-}
+function select_all_nodes() { node.classed("selected", true); }
 
-function select_all_edges()
-{
-	drawingBoard.selectAll(".link").classed("selected", true);
-}
+function select_all_edges() { link.classed("selected", true); }
 
-function select_none()
-{
-	drawingBoard.selectAll(".selected").classed("selected", false);
-}
+function select_none() { drawingBoard.selectAll(".selected").classed("selected", false); }
 
 function new_vertex()
 {
@@ -1510,4 +1494,5 @@ function redo()
 
 </script>
 
-<body>
+</body>
+</html>
