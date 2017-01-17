@@ -1,7 +1,9 @@
 # StickyGraph
+
 A javascript program to help you quickly visualize and work with small graphs.
 
 ##Synopsis
+
 I know that I, personally, have been quite frustrated by how frustrating it is to try to quickly visualize particular, small graphs.  There are some programs that can quickly draw graphs reasonably well (I have been using force-directed layouts in Sage), and some slower methods to precisely control the drawing (I have been using Ti*k*Z in LaTeX).  I am yet to find, however, a tool that combines the simplicity of an automatic layout with the direct control needed to quickly find the "right" way to visualize the structure of a graph if it isn't the way that you automatic drawer *wants* to draw it.
 
 This program seeks to address this by taking graphs in graph6 format, positioning the vertices automatically using a force directed layout (provided by the wonderful d3.js library), but giving you the control to drag vertices around, pinning them in place wherever they are dropped (as other vertices jiggle about trying to keep things pretty).  Double clicking a pinned vertex will unpin it again.  The hope is that this gives you the flexibility to get a reasonable drawing quickly.
@@ -10,7 +12,7 @@ StickyGraph also provides a few tools to edit and color the graph, which will be
 
 ## Usage
 
-The first thing you should most certainly do is to download or clone this repository and open stickygraph.html in your favorite browser.
+The first thing you should most certainly do is point your favorite browser towards [http://jzacharyg.github.io/StickyGraph](http://jzacharyg.github.io/StickyGraph) and start playing!  You can also download or clone this repository and open index.html, if you would prefer.
 
 #### Drawing and Pinning
 
