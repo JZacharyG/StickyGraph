@@ -14,11 +14,11 @@
 }
 
 #drawing-board {
-    display: inline-block;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    vertical-align: center;
+	display: inline-block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	vertical-align: center;
 }
 
 .node {
@@ -33,9 +33,9 @@
 }
 
 .link {
-  fill:none;
-  stroke: #999;
-  stroke-width: 3px;
+	fill:none;
+	stroke: #999;
+	stroke-width: 3px;
 }
 
 .node.red, .color-button-rect.red { fill: #f00; }
@@ -76,9 +76,14 @@
 	background-color: rgba(255, 255, 255, 0.8);
 }
 
+#graph-input-type {
+	left:15px;
+	top: 50px;
+}
+
 .overlay {
-  fill: none;
-  pointer-events: all;
+	fill: none;
+	pointer-events: all;
 }
 
 .edit-button {
@@ -148,23 +153,34 @@
 	margin-bottom:5px;
 }
 
-#TikZ-area {
+#TikZ-area, #matrix-area {
 	height:100%;
 	margin:0px;
 	padding:2px;
 	border:1px solid;
-	resize:horizontal;
 	background-color:rgba(255,255,255,.8);
 	font-family:"Lucida Console", Monaco, monospace;
+	overflow:auto;
+}
+
+#TikZ-area {
+	resize:horizontal;
+}
+
+#matrix-area {
+	display:block;
+	width:100px;
+	height:75px;
+	resize:both;
 }
 
 .label, #graph-input-form, #TikZ-button-text, .edit-button-text {
-  -webkit-touch-callout: none; /* iOS Safari */
-  -webkit-user-select: none;   /* Chrome/Safari/Opera */
-  -khtml-user-select: none;    /* Konqueror */
-  -moz-user-select: none;      /* Firefox */
-  -ms-user-select: none;       /* IE/Edge */
-  user-select: none;           /* non-prefixed version */
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* IE/Edge */
+	user-select: none;           /* non-prefixed version */
 }
 
 
@@ -177,18 +193,42 @@
 
 <div id="drawing-board-div"></div>
 
-<form id="graph-input-form" action="" onsubmit="return load_g6(this);">
-Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofocus>
+
+
+<form id="graph-input-form" action="" onsubmit="return load_g6();">
+<select id="graph-mode-input" onchange="set_graph_mode()">
+	<option value="graph6">Graph6</option>
+	<option value="adjmatrix-text">Adj. Matrix</option>
+	<option value="laplacian">Laplacian</option>
+</select>
+<input type="text" id="g6-input" value="" size="30" autofocus>
+<textarea id="matrix-area" readonly wrap="off"></textarea>
+<!-- 
+<table style="text-align:center;font-size:12px;"><!~~ <table style="display:inline-table;vertical-align:top;"> ~~>
+<tr>
+<td></td><td>1</td><td>2</td>
+</tr>
+<tr>
+<td>1</td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+</tr>
+<tr>
+<td>2</td>
+<td><input type="checkbox"></td>
+<td><input type="checkbox"></td>
+</tr>
+</table>
+ -->
+
+
 <!-- 
 <input type="submit" value="Draw!">
  -->
+<!--  contenteditable: http://html5demos.com/contenteditable -->
 </form>
 
-<!-- 
-<form id="show-labels-form" action="">
-<label><input type="checkbox" id="show-labels-box" onclick="check_show_labels(this)" checked>Show Labels</label>
-</form>
- -->
+
 
 
 
@@ -204,7 +244,7 @@ Graph 6 <input type="text" id="graph-input" name="g6" value="" size="30" autofoc
 <script>
 
 var width = window.innerWidth,
-    height = window.innerHeight;
+	height = window.innerHeight;
 
 const DRAGPIN   = 0, // modes
       ADDEDGE   = 1,
@@ -214,26 +254,34 @@ const DRAGPIN   = 0, // modes
       COLOR     = 5;
 var mode = DRAGPIN;
 var colorMode = ""; // this would be the color if we are in color mode. Otherwise unused.
+var graphMode;
+const GRAPH6         = 0,
+      PATHLIST       = 1,
+      ADJMATRIX      = 2,
+      ADJMATRIX_TEXT = 3,
+      LAPLACIAN      = 4;
 
 
 var color = d3.scale.category10(); // FIX ME? do we ever use this?
 
 var nodes = [],
-    links = [];
+	links = [];
 var nextID = 0; // when we edit the graph, maybe it would help to have a nice, unique id to go along with it? maybe we don't need ids at all, though?
 
 var undoStack = [],
 	redoStack = [];
 
 var force = d3.layout.force()
-    .nodes(nodes)
-    .links(links)
-    .charge(-600)
-    .gravity(.1)
-    .linkDistance(120)
-    .linkStrength(.8)
-    .size([width, height])
-    .on("tick", tick);
+	.nodes(nodes)
+	.links(links)
+	.charge(-600)
+	.gravity(.1)
+	.linkDistance(120)
+	.linkStrength(.8)
+	.size([width, height])
+	.on("tick", tick);
+
+set_graph_mode();
 
 var zoom = d3.behavior.zoom();
 
@@ -243,16 +291,16 @@ var drawingBoard = d3.select("#drawing-board-div")
 	.attr("preserveAspectRatio", "xMinYMin meet");
 
 var addvButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"10px", "bottom":"130px"})
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"10px", "bottom":"130px"})
 addvButton.append("rect")
-  .classed("edit-button-rect mode-button", true)
-  .attr("id", "add-v-button")
-  .on("click", add_vertex_button_press);
+	.classed("edit-button-rect mode-button", true)
+	.attr("id", "add-v-button")
+	.on("click", add_vertex_button_press);
 addvButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+	.classed("edit-button-path", true)
+	.attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
 addvButton.append("text")
 	.classed("edit-button-text", true)
 	.attr("x","9")
@@ -260,16 +308,16 @@ addvButton.append("text")
 	.text("v");
 
 var addeButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"10px", "bottom":"90px"})
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"10px", "bottom":"90px"})
 addeButton.append("rect")
-  .classed("edit-button-rect mode-button", true)
-  .attr("id", "add-e-button")
-  .on("click", add_edge_button_press);
+	.classed("edit-button-rect mode-button", true)
+	.attr("id", "add-e-button")
+	.on("click", add_edge_button_press);
 addeButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
+	.classed("edit-button-path", true)
+	.attr("d","M 13 0 L -13 0 M 0 13 L 0 -13");
 addeButton.append("text")
 	.classed("edit-button-text", true)
 	.attr("x","9")
@@ -277,269 +325,270 @@ addeButton.append("text")
 	.text("e");
 
 var deleteButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"10px", "bottom":"50px"})
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"10px", "bottom":"50px"})
 deleteButton.append("rect")
-  .classed("edit-button-rect mode-button", true)
-  .attr("id", "delete-button")
-  .on("click", delete_button_press);
+	.classed("edit-button-rect mode-button", true)
+	.attr("id", "delete-button")
+	.on("click", delete_button_press);
 deleteButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
+	.classed("edit-button-path", true)
+	.attr("d","M -9.1924 9.1924 L 9.1924 -9.1924 M -9.1924 -9.1924 L 9.1924 9.1924");
 
 var contractButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"10px", "bottom":"10px"})
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"10px", "bottom":"10px"})
 contractButton.append("rect")
-  .classed("edit-button-rect mode-button", true)
-  .attr("id", "contract-button")
-  .on("click", contract_button_press);
+	.classed("edit-button-rect mode-button", true)
+	.attr("id", "contract-button")
+	.on("click", contract_button_press);
 contractButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M -13 13 L 13 -13");
+	.classed("edit-button-path", true)
+	.attr("d","M -13 13 L 13 -13");
 
 var selectAllButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({right:"50px", "top":"50px"});
+	.append("svg")
+	.classed("edit-button",true)
+	.style({right:"50px", "top":"50px"});
 selectAllButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", select_all_nodes);
+	.classed("edit-button-rect", true)
+	.on("click", select_all_nodes);
 selectAllButton.append("path")
-  .classed("link",true)
-  .attr("d","M 0 0 L 17 0");
+	.classed("link",true)
+	.attr("d","M 0 0 L 17 0");
 selectAllButton.append("path")
-  .classed("link", true)
-  .attr("d", "M 0 0 L -17 0");
+	.classed("link", true)
+	.attr("d", "M 0 0 L -17 0");
 selectAllButton.append("circle")
-  .classed("node selected", true)
-  .attr({cx:"0px", cy:"0px", r:"9px"});
+	.classed("node selected", true)
+	.attr({cx:"0px", cy:"0px", r:"9px"});
 
 
 var selectEdgesButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"50px", "top":"90px"});
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"50px", "top":"90px"});
 selectEdgesButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", select_all_edges);
+	.classed("edit-button-rect", true)
+	.on("click", select_all_edges);
 selectEdgesButton.append("path")
-  .classed("link selected",true)
-  .attr("d","M 0 0 L 17 0");
+	.classed("link selected",true)
+	.attr("d","M 0 0 L 17 0");
 selectEdgesButton.append("path")
-  .classed("link selected", true)
-  .attr("d", "M 0 0 L -17 0");
+	.classed("link selected", true)
+	.attr("d", "M 0 0 L -17 0");
 selectEdgesButton.append("circle")
-  .classed("node", true)
-  .attr({cx:"0px", cy:"0px", r:"9px"});
+	.classed("node", true)
+	.attr({cx:"0px", cy:"0px", r:"9px"});
 
 
 var selectNoneButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"50px", "top":"10px"});
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"50px", "top":"10px"});
 selectNoneButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", select_none);
+	.classed("edit-button-rect", true)
+	.on("click", select_none);
 selectNoneButton.append("path")
-  .classed("link",true)
-  .attr("d","M 0 0 L 17 0");
+	.classed("link",true)
+	.attr("d","M 0 0 L 17 0");
 selectNoneButton.append("path")
-  .classed("link", true)
-  .attr("d", "M 0 0 L -17 0");
+	.classed("link", true)
+	.attr("d", "M 0 0 L -17 0");
 selectNoneButton.append("circle")
-  .classed("node", true)
-  .attr({cx:"0px", cy:"0px", r:"9px"});
+	.classed("node", true)
+	.attr({cx:"0px", cy:"0px", r:"9px"});
 
 
 var pinButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"90px", "top":"50px"});
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"90px", "top":"50px"});
 pinButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", pin_all);
+	.classed("edit-button-rect", true)
+	.on("click", pin_all);
 pinButton.append("path")
-  .classed("link",true)
-  .attr("d","M 0 0 L 17 0");
+	.classed("link",true)
+	.attr("d","M 0 0 L 17 0");
 pinButton.append("path")
-  .classed("link", true)
-  .attr("d", "M 0 0 L -17 0");
+	.classed("link", true)
+	.attr("d", "M 0 0 L -17 0");
 pinButton.append("circle")
-  .classed("node pinned", true)
-  .attr({cx:"0px", cy:"0px", r:"9px"});
+	.classed("node pinned", true)
+	.attr({cx:"0px", cy:"0px", r:"9px"});
 
 
 var unpinButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style({"right":"90px", "top":"10px"});
+	.append("svg")
+	.classed("edit-button",true)
+	.style({"right":"90px", "top":"10px"});
 unpinButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", unpin_all);
+	.classed("edit-button-rect", true)
+	.on("click", unpin_all);
 unpinButton.append("path")
-  .classed("link",true)
-  .attr("d","M 0 0 L 17 0");
+	.classed("link",true)
+	.attr("d","M 0 0 L 17 0");
 unpinButton.append("path")
-  .classed("link", true)
-  .attr("d", "M 0 0 L -17 0");
+	.classed("link", true)
+	.attr("d", "M 0 0 L -17 0");
 unpinButton.append("circle")
-  .classed("node", true)
-  .attr({cx:"0px", cy:"0px", r:"9px"});
+	.classed("node", true)
+	.attr({cx:"0px", cy:"0px", r:"9px"});
 
 var TikZButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("left", "10px")
-  .style("bottom", "50px");
+	.append("svg")
+	.classed("edit-button",true)
+	.style("left", "10px")
+	.style("bottom", "50px");
 TikZButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", generate_TikZ);
+	.classed("edit-button-rect", true)
+	.on("click", generate_TikZ);
 TikZText = TikZButton.append("text")
-  .attr("id","TikZ-button-text")
-  .attr({x:"0px", y:"6px"});
+	.attr("id","TikZ-button-text")
+	.attr({x:"0px", y:"6px"});
 TikZText.append("tspan").text("Ti");
 TikZText.append("tspan").text("k").style("font-style","italic");
 TikZText.append("tspan").text("Z");
 
 var labelButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("bottom", "10px")
-  .style("left", "10px")
+	.append("svg")
+	.classed("edit-button",true)
+	.style("bottom", "10px")
+	.style("left", "10px")
 labelRect = labelButton.append("rect")
-  .classed("edit-button-rect",true)
-  .on("click", function () { 
-  		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
-  		check_show_labels(); });
+	.classed("edit-button-rect selected",true)
+	.classed("edit-button-rect selected",true)
+	.on("click", function () { 
+		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
+		check_show_labels(); });
 labelButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
+	.classed("edit-button-path", true)
+	.attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
 
 var undoButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("bottom", "10px")
-  .style("right", "50%")
+	.append("svg")
+	.classed("edit-button",true)
+	.style("bottom", "10px")
+	.style("right", "50%")
 undoRect = undoButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", undo);
+	.classed("edit-button-rect", true)
+	.on("click", undo);
 undoButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M 13 0 L -13 0 M -13 0 l 7 7 M -13 0 l 7 -7");
+	.classed("edit-button-path", true)
+	.attr("d","M 13 0 L -13 0 M -13 0 l 7 7 M -13 0 l 7 -7");
 
 var redoButton = d3.select("body")
-  .append("svg")
-  .classed("edit-button",true)
-  .style("bottom", "10px")
-  .style("left", "50%")
+	.append("svg")
+	.classed("edit-button",true)
+	.style("bottom", "10px")
+	.style("left", "50%")
 redoRect = redoButton.append("rect")
-  .classed("edit-button-rect", true)
-  .on("click", redo);
+	.classed("edit-button-rect", true)
+	.on("click", redo);
 redoButton.append("path")
-  .classed("edit-button-path", true)
-  .attr("d","M -13 0 L 13 0 M 13 0 l -7 7 M 13 0 l -7 -7");
+	.classed("edit-button-path", true)
+	.attr("d","M -13 0 L 13 0 M 13 0 l -7 7 M 13 0 l -7 -7");
 
 
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"10px"})
-  .append("rect")
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "no-color-button")
-  .on("click", function () {color_button_press(d3.select(this), "");})
-  .style("fill", "black");
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"10px"})
+	.append("rect")
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "no-color-button")
+	.on("click", function () {color_button_press(d3.select(this), "");})
+	.style("fill", "black");
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"50px"})
-  .append("rect")
-  .classed("red",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "red-button")
-  .on("click", function () {color_button_press(d3.select(this), "red");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"50px"})
+	.append("rect")
+	.classed("red",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "red-button")
+	.on("click", function () {color_button_press(d3.select(this), "red");});
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"90px"})
-  .append("rect")
-  .classed("orange",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "orange-button")
-  .on("click", function () {color_button_press(d3.select(this), "orange");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"90px"})
+	.append("rect")
+	.classed("orange",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "orange-button")
+	.on("click", function () {color_button_press(d3.select(this), "orange");});
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"130px"})
-  .append("rect")
-  .classed("yellow",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "yellow-button")
-  .on("click", function () {color_button_press(d3.select(this), "yellow");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"130px"})
+	.append("rect")
+	.classed("yellow",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "yellow-button")
+	.on("click", function () {color_button_press(d3.select(this), "yellow");});
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"170px"})
-  .append("rect")
-  .classed("green",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "green-button")
-  .on("click", function () {color_button_press(d3.select(this), "green");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"170px"})
+	.append("rect")
+	.classed("green",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "green-button")
+	.on("click", function () {color_button_press(d3.select(this), "green");});
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"210px"})
-  .append("rect")
-  .classed("blue",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "blue-button")
-  .on("click", function () {color_button_press(d3.select(this), "blue");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"210px"})
+	.append("rect")
+	.classed("blue",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "blue-button")
+	.on("click", function () {color_button_press(d3.select(this), "blue");});
 
 d3.select("body")
-  .append("svg")
-  .classed("color-button",true)
-  .style({"right":"10px", "top":"250px"})
-  .append("rect")
-  .classed("purple",true)
-  .classed("color-button-rect mode-button", true)
-  .attr("id", "purple-button")
-  .on("click", function () {color_button_press(d3.select(this), "purple");});
+	.append("svg")
+	.classed("color-button",true)
+	.style({"right":"10px", "top":"250px"})
+	.append("rect")
+	.classed("purple",true)
+	.classed("color-button-rect mode-button", true)
+	.attr("id", "purple-button")
+	.on("click", function () {color_button_press(d3.select(this), "purple");});
 
 d3.selectAll(".color-button")
-  .attr("viewBox", "-20 -20 40 40 ")
-  .attr("width", "35")
-  .attr("height", "35");
+	.attr("viewBox", "-20 -20 40 40 ")
+	.attr("width", "35")
+	.attr("height", "35");
 
 d3.selectAll(".edit-button")
-  .attr("viewBox", "-20 -20 40 40 ")
-  .attr("width", "35")
-  .attr("height", "35");
+	.attr("viewBox", "-20 -20 40 40 ")
+	.attr("width", "35")
+	.attr("height", "35");
 
 d3.selectAll(".edit-button-path")
-  .attr("stroke-linecap","round");
+	.attr("stroke-linecap","round");
 
 d3.selectAll(".edit-button-rect")
-  .attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
+	.attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
 
 d3.selectAll(".color-button-rect")
-  .attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
+	.attr({x:"-18.5px", y:"-18.5px", width:"37px", height:"37px", rx:"6px", ry:"6px"});
 
-d3.select("body").append("div").attr("id", "TikZ-div").style("display", "none").append("textarea").attr("id", "TikZ-area").attr("readonly", true).style("width", ""+(width/3)+"px");
+d3.select("body").append("div").attr("id", "TikZ-div").style("display", "none").append("textarea").attr("id", "TikZ-area").attr({id:"TikZ-area", readonly:true, wrap:"off"}).style("width", ""+(width/3)+"px");
 
 drawingBoard.append("rect")
-    .attr("class", "overlay")
-    .attr("width", 100*width)
-    .attr("height", 100*height)
-    .call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
+	.attr("class", "overlay")
+	.attr("width", 100*width)
+	.attr("height", 100*height)
+	.call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
 
 resize();
 d3.select(window).on("resize", resize);
@@ -558,8 +607,8 @@ zoomable.append("g").attr("id", "nodes");
 zoomable.append("g").attr("id", "labels");
 
 var node = drawingBoard.select("#nodes").selectAll(".node"),
-    link = drawingBoard.select("#links").selectAll(".link"),
-    label = drawingBoard.select("#labels").selectAll(".label");
+	link = drawingBoard.select("#links").selectAll(".link"),
+	label = drawingBoard.select("#labels").selectAll(".label");
 
 function zoomHandler()
 {
@@ -662,7 +711,7 @@ function new_edge_drag_end(d1)
 				drawingBoard.selectAll(".link")
 					.filter(function (d) { return d.source.id == d1.id && d.target.id == d2.id; })
 					.classed("selected", true);
-			write_g6();
+			write_graph();
 			force.start();
 		}
 	}
@@ -672,7 +721,7 @@ var curveEdgeDrag = d3.behavior.drag()
 	.on("dragstart", curve_edge_drag_start)
 	.on("drag", curve_edge_drag)
 	.on("dragend", curve_edge_drag_end);
-var dragLink; // replace this with an edge with a known id, so that we don't need a global variable to keep track of it?  debatable.
+var dragLink; // replace this with an edge with a known id, so that we don't need a global variable to keep track of it? debatable.
 
 function get_edge_path(d)
 {
@@ -718,8 +767,8 @@ function curve_edge_drag_end(d)
 {
 	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.1*dist(d.source.x, d.source.y, d.target.x, d.target.y))
 	{
-		d3.select("#v"+d.source.label).each(pin);
-		d3.select("#v"+d.target.label).each(pin);
+		d3.select("#v"+d.source.id).each(pin);
+		d3.select("#v"+d.target.id).each(pin);
 	}
 	else
 	{
@@ -805,7 +854,7 @@ function add_event_listeners()
 			break;
 		case CONTRACT:
 			link.on("click", function (d) {
-					save_state(); contract_edge(d); update_graph(); write_g6(); force.start(); })
+					save_state(); contract_edge(d); update_graph(); write_graph(); force.start(); })
 				.on("mousedown", null)
 				.call(noDrag);
 			node.on("dblclick", unpin)
@@ -815,12 +864,12 @@ function add_event_listeners()
 			break;
 		case DELETE:
 			link.on("click", function (d) {
-					save_state(); delete_edge(d); update_graph(); write_g6(); force.start(); })
+					save_state(); delete_edge(d); update_graph(); write_graph(); force.start(); })
 				.on("mousedown", null)
 				.call(noDrag);
 			node.on("dblclick", null)
-				.on("click",  function (d) {
-					save_state(); delete_vertex(d); update_graph(); write_g6(); force.start(); })
+				.on("click", function (d) {
+					save_state(); delete_vertex(d); update_graph(); write_graph(); force.start(); })
 				.on("mousedown", null)
 				.call(noDrag);
 			break;
@@ -863,7 +912,7 @@ function select_none() { drawingBoard.selectAll(".selected").classed("selected",
 
 function new_vertex()
 {
-	var newv = {id:nextID, label:nodes.length, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
+	var newv = {id:nextID, index:nodes.length, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
 	nodes.push(newv);
 	nextID++;
 	return newv;
@@ -882,9 +931,9 @@ function delete_vertex(d)
 			i++;
 	}
 	
-	for (var i=d.label+1; i<nodes.length; i++)
+	for (var i=d.index+1; i<nodes.length; i++)
 	{
-		nodes[i].label--;
+		nodes[i].index--;
 		nodes[i-1]=nodes[i];
 	}
 	nodes.length--;
@@ -921,35 +970,35 @@ function contract_edge(d, toDelete)
 	adj.length = nodes.length;
 	for (var i = 0; i < nodes.length; i++)
 		adj[i] = false;
-	var v1 = Math.min(d.source.label, d.target.label);
-	var v2 = Math.max(d.source.label, d.target.label);
+	var v1 = Math.min(d.source.index, d.target.index);
+	var v2 = Math.max(d.source.index, d.target.index);
 	
 	for (var i = 0; i < links.length;i++)
 	{
 		var l = links[i];
 		
-		if ((l.source.label == v1 && l.target.label == v2) || (l.target.label == v1 && l.source.label == v2))
+		if ((l.source.index == v1 && l.target.index == v2) || (l.target.index == v1 && l.source.index == v2))
 		{
 			toDelete[i] = true;
 			l.source = l.target = nodes[v1];
 		}
-		else if (l.source.label == v1 || l.source.label == v2)
+		else if (l.source.index == v1 || l.source.index == v2)
 		{
-			if (adj[l.target.label])
+			if (adj[l.target.index])
 				toDelete[i] = true;
-			adj[l.target.label] = true;
+			adj[l.target.index] = true;
 			l.source = nodes[v1];
 		}
-		else if (l.target.label == v1 || l.target.label == v2)
+		else if (l.target.index == v1 || l.target.index == v2)
 		{
-			if (adj[l.source.label])
+			if (adj[l.source.index])
 				toDelete[i] = true;
-			adj[l.source.label] = true;
+			adj[l.source.index] = true;
 			l.target = nodes[v1];
 		}
 	}
 	
-	adj[d.source.label] = adj[d.target.label] = false;
+	adj[d.source.index] = adj[d.target.index] = false;
 	
 	if (deleteNow)
 	{
@@ -1018,11 +1067,11 @@ function add_vertex_button_press()
 		selected.each(function (d,i) { links.push({source:newv, target: d, color:""}); });
 		update_graph();
 		if (d3.event.shiftKey)
-			drawingBoard.select("#v"+newv.label)
+			drawingBoard.select("#v"+newv.id)
 				.classed("selected", true);
 	}
 	
-	write_g6();
+	write_graph();
 	force.start();
 }
 
@@ -1093,7 +1142,7 @@ function delete_button_press()
 	if (changes)
 	{
 		update_graph();
-		write_g6();
+		write_graph();
 		force.start();
 	}
 	else
@@ -1108,13 +1157,13 @@ function delete_button_press()
 function contract_button_press()
 {
 	var toContract = [];
-	var newv; // the label of the first vertex being contracted, which will be the resulting vertex.
+	var newv; // the index of the first vertex being contracted, which will be the resulting vertex.
 	var adj = [];
 	toContract.length = nodes.length;
 	adj.length = nodes.length;
 	for (var i = 0; i < nodes.length; i++)
 		toContract[i] = adj[i] = false;
-	selectedNodes = drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.label] = true;} );
+	selectedNodes = drawingBoard.selectAll(".node.selected").each( function (d) {toContract[d.index] = true;} );
 	selectedLinks = drawingBoard.selectAll(".link.selected");
 	
 	if (selectedNodes.empty() && selectedLinks.empty())
@@ -1140,7 +1189,7 @@ function contract_button_press()
 			links.length--;
 		}
 		update_graph();
-		write_g6();
+		write_graph();
 		force.start();
 	}
 	
@@ -1150,15 +1199,15 @@ function contract_button_press()
 		for (var i = 0; i < links.length;)
 		{
 			var l = links[i];
-			if (toContract[l.source.label] && !toContract[l.target.label])
+			if (toContract[l.source.index] && !toContract[l.target.index])
 			{
-				adj[l.target.label] = true;
+				adj[l.target.index] = true;
 				links[i] = links[links.length-1];
 				links.length--;
 			}
-			else if (!toContract[l.source.label] && toContract[l.target.label])
+			else if (!toContract[l.source.index] && toContract[l.target.index])
 			{
-				adj[l.source.label] = true;
+				adj[l.source.index] = true;
 				links[i] = links[links.length-1];
 				links.length--;
 			}
@@ -1205,7 +1254,7 @@ function contract_button_press()
 				.classed("selected", true);
 		else
 			select_none();
-		write_g6();
+		write_graph();
 		force.start();
 	}
 }
@@ -1251,9 +1300,9 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
+	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("g6-input").value + "\n\\begin{tikzpicture}[scale=5]";
 	var min = Number.MAX_VALUE,
-	    max = Number.MIN_VALUE;
+		max = Number.MIN_VALUE;
 	var printLabels = labelRect.classed("selected");
 
 	for (var i = 0; i < nodes.length; i++)
@@ -1268,8 +1317,8 @@ function generate_TikZ()
 		if (nodes[i].color != "")
 			tikz += ", " + nodes[i].color;
 		if (printLabels)
-			tikz += ", label=above:" + nodes[i].label;
-		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].label + ") {};";
+			tikz += ", label=above:" + nodes[i].index;
+		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].index + ") {};";
 	}
 	
 	for (var i = 0; i < links.length; i++)
@@ -1277,14 +1326,14 @@ function generate_TikZ()
 		tikz += "\n\t\\draw[edge";
 		if (links[i].color != "")
 			tikz += ", " + links[i].color;
-		tikz += "] (v" + links[i].target.label + ") ";
+		tikz += "] (v" + links[i].target.index + ") ";
 		if ("controlx" in links[i])
 		{
 			tikz += ".. controls (" + (links[i].controlx/(max-min)).toFixed(3) + ", " + (-links[i].controly/(max-min)).toFixed(3) + ") .."
 		}
 		else
 			tikz += "to";
-		tikz+= " (v" + links[i].source.label + ");";
+		tikz+= " (v" + links[i].source.index + ");";
 	}
 	
 	tikz += "\n\\end{tikzpicture}";
@@ -1329,7 +1378,7 @@ function update_graph()
 		.enter()
 		.append("circle")
 		.classed("node", true)
-		.attr("id", function(d) {return "v"+d.label;})
+		.attr("id", function(d) {return "v"+d.id;})
 		.attr("r", "9px")
 		.each(function(d) {d3.select(this).classed(d.color, true);})
 		.classed("pinned", function(d) {return d.fixed;});
@@ -1337,11 +1386,11 @@ function update_graph()
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
 	label
-		.text(function(d) { return d.label;})
+		.text(function(d) { return d.index;})
 		.enter()
 		.append("text")
 		.classed("label", true)
-		.text(function(d) { return d.label;});
+		.text(function(d) { return d.index;});
 	label.exit().remove();
 	
 	add_event_listeners();
@@ -1351,13 +1400,122 @@ function update_graph()
 function tick()
 {
 	node.attr("cx", function(d) { return d.x; })
-	    .attr("cy", function(d) { return d.y; });
+		.attr("cy", function(d) { return d.y; });
 	
 	link.attr("d", get_edge_path);
 	
 	label.attr("x", function(d) { return d.x; })
-	     .attr("y", function(d) { return d.y; })
-	     .attr("dy", "-14");
+		.attr("y", function(d) { return d.y; })
+		.attr("dy", "-14");
+}
+
+function set_graph_mode()
+{
+	switch(document.getElementById("graph-mode-input").value)
+	{
+	case "graph6":
+		graphMode = GRAPH6;
+		d3.select("#g6-input").style("display", null);
+		document.getElementById("g6-input").focus();
+		d3.select("#matrix-area").style("display", "none");
+		break;
+	case "pathlist":
+		graphMode = PATHLIST;
+	case "adjmatrix":
+		graphMode = ADJMATRIX;
+	default:
+		console.log("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
+		break;
+	case "adjmatrix-text":
+		graphMode = ADJMATRIX_TEXT;
+		d3.select("#g6-input").style("display", "none");
+		d3.select("#matrix-area").style("display", null);
+		break;
+	case "laplacian":
+		graphMode = LAPLACIAN;
+		d3.select("#g6-input").style("display", "none");
+		d3.select("#matrix-area").style("display", null);
+		break;
+	}
+	write_graph();
+}
+
+function write_graph()
+{
+	switch (graphMode)
+	{
+	case GRAPH6:
+		write_g6(); break;
+	case ADJMATRIX_TEXT:
+		write_adj_matrix_text(); break;
+	case LAPLACIAN:
+		write_laplacian(); break;
+	}
+}
+
+function get_adj_matrix()
+{
+	am = [];
+	n = nodes.length;
+	for (var r=0; r<n; r++)
+	{
+		row = [];
+		for (var c=0; c<n; c++)
+			row.push(0);
+		am.push(row);
+	}
+	for (l of links)
+		am[l.source.index][l.target.index] = am[l.target.index][l.source.index] = 1;
+	return am;
+}
+
+function write_adj_matrix_text()
+{
+	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
+	am = get_adj_matrix();
+	n = nodes.length;
+	rows = [];
+	for (row of am)
+		rows.push(row.join(inter))
+	cols = n + (n-1)*inter.length + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
+	d3.select("#matrix-area")
+		.text(firstpre+rows.join(post+"\n"+pre)+lastpost)
+		.attr("rows", n+1)
+		.attr("cols", cols);
+}
+
+function load_adj_matrix_text()
+{
+
+}
+
+function write_laplacian()
+{
+	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
+	lap = get_adj_matrix();
+	n = lap.length;
+	for (var i=0; i<n; i++)
+	{
+		lap[i] = lap[i].map(function (x) {return -x;});
+		lap[i][i] = -lap[i].reduce(function(x,y){return x+y;}, 0);
+	}
+	rows = [];
+	for (row of lap)
+		rows.push(row.join(inter))
+// 	cols = n + (n-1)*(inter.length+1) + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
+	
+	d3.select("#matrix-area")
+		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
+}
+
+function write_adj_matrix_boxes()
+{
+
+}
+
+function load_adj_matrix_boxes()
+{
+
 }
 
 function write_g6()
@@ -1374,21 +1532,21 @@ function write_g6()
 		{
 			var l = links[i];
 			
-			var V = Math.max(l.source.label, l.target.label);
-			var v = Math.min(l.source.label, l.target.label);
+			var V = Math.max(l.source.index, l.target.index);
+			var v = Math.min(l.source.index, l.target.index);
 			var c = Math.floor((V*(V-1)/2+v)/6);
 			var b = 1 << (5-((V*(V-1)/2+v) % 6));
 			g6string = g6string.substring(0, c+1) + String.fromCharCode(((g6string.charCodeAt(c+1) - 63) | b) + 63) + g6string.substring(c+2);
 		}
 	}
-	document.getElementById("graph-input").value = g6string;
+	document.getElementById("g6-input").value = g6string;
 }
 
-function load_g6(form)
+function load_g6()
 {
 	save_state();
 	clear_graph();
-	var g6string=form.g6.value;
+	var g6string=document.getElementById("g6-input").value;
 	var g6i=0;
 	var i, j, k, x;
 	
@@ -1402,7 +1560,7 @@ function load_g6(form)
 
 	for (nextID=0; nextID<nv; nextID++)
 	{
-		nodes[nextID]={id:nextID, label:nextID, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
+		nodes[nextID]={id:nextID, index:nextID, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
 	}
 	g6i++;
 	
@@ -1470,9 +1628,9 @@ function load_state(state)
 		nodes.push(n);
 	for (l of state.links)
 		links.push(l);
-    nextID = state.nextID;
+	nextID = state.nextID;
 	update_graph();
-	write_g6();
+	write_graph();
 	force.start();
 }
 
