@@ -198,28 +198,17 @@
 <form id="graph-input-form" action="" onsubmit="return load_g6();">
 <select id="graph-mode-input" onchange="set_graph_mode()">
 	<option value="graph6">Graph6</option>
-	<option value="adjmatrix-text">Adj. Matrix</option>
+	<!-- <option value="pathlist" disabled="disabled">Path List</option> -->
+	<option value="adjmatrix">Adj. Matrix</option>
 	<option value="laplacian">Laplacian</option>
+	<option value=togglematrix>Interactive A.M.</option>
+	<option value="none">None</option>
 </select>
 <input type="text" id="g6-input" value="" size="30" autofocus>
 <textarea id="matrix-area" readonly wrap="off"></textarea>
-<!-- 
-<table style="text-align:center;font-size:12px;"><!~~ <table style="display:inline-table;vertical-align:top;"> ~~>
-<tr>
-<td></td><td>1</td><td>2</td>
-</tr>
-<tr>
-<td>1</td>
-<td><input type="checkbox"></td>
-<td><input type="checkbox"></td>
-</tr>
-<tr>
-<td>2</td>
-<td><input type="checkbox"></td>
-<td><input type="checkbox"></td>
-</tr>
+<table id="togglematrix-table" style="text-align:center;font-size:12px;">
 </table>
- -->
+
 
 
 <!-- 
@@ -255,11 +244,12 @@ const DRAGPIN   = 0, // modes
 var mode = DRAGPIN;
 var colorMode = ""; // this would be the color if we are in color mode. Otherwise unused.
 var graphMode;
-const GRAPH6         = 0,
-      PATHLIST       = 1,
-      ADJMATRIX      = 2,
-      ADJMATRIX_TEXT = 3,
-      LAPLACIAN      = 4;
+const NONE         = 0,
+      GRAPH6       = 1,
+      PATHLIST     = 2,
+      TOGGLEMATRIX = 3,
+      ADJMATRIX    = 4,
+      LAPLACIAN    = 5;
 
 
 var color = d3.scale.category10(); // FIX ME? do we ever use this?
@@ -1366,13 +1356,6 @@ function clear_graph()
 
 function update_graph()
 {
-	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
-	link.enter()
-		.append("path")
-		.attr("class", "link")
-		.each(function(d) {d3.select(this).classed(d.color, true);});
-	link.exit().remove();
-	
 	node = node.data(force.nodes(), function(d) { return d.id;});
 	node
 		.enter()
@@ -1384,6 +1367,13 @@ function update_graph()
 		.classed("pinned", function(d) {return d.fixed;});
 	node.exit().remove();
 	
+	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
+	link.enter()
+		.append("path")
+		.attr("class", "link")
+		.each(function(d) {d3.select(this).classed(d.color, true);})
+	link.exit().remove();
+	
 	label = label.data(force.nodes(), function(d) { return d.id;});
 	label
 		.text(function(d) { return d.index;})
@@ -1392,7 +1382,6 @@ function update_graph()
 		.classed("label", true)
 		.text(function(d) { return d.index;});
 	label.exit().remove();
-	
 	add_event_listeners();
 	check_show_labels();
 }
@@ -1411,32 +1400,46 @@ function tick()
 
 function set_graph_mode()
 {
-	switch(document.getElementById("graph-mode-input").value)
+	switch (document.getElementById("graph-mode-input").value)
 	{
-	case "graph6":
-		graphMode = GRAPH6;
+	case "none":         graphMode = NONE;          break;
+	case "graph6":       graphMode = GRAPH6;        break;
+	case "pathlist":     graphMode = PATHLIST;      break;
+	case "togglematrix": graphMode = TOGGLEMATRIX;  break;
+	case "adjmatrix":    graphMode = ADJMATRIX;     break;
+	case "laplacian":    graphMode = LAPLACIAN;     break;
+	default:
+		console.error("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
+		return;
+	}
+
+	switch (graphMode)
+	{
+	case GRAPH6:
+	case PATHLIST:
 		d3.select("#g6-input").style("display", null);
 		document.getElementById("g6-input").focus();
 		d3.select("#matrix-area").style("display", "none");
+		d3.select("#togglematrix-table").style("display", "none");
 		break;
-	case "pathlist":
-		graphMode = PATHLIST;
-	case "adjmatrix":
-		graphMode = ADJMATRIX;
-	default:
-		console.log("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
-		break;
-	case "adjmatrix-text":
-		graphMode = ADJMATRIX_TEXT;
+	case ADJMATRIX:
+	case LAPLACIAN:
 		d3.select("#g6-input").style("display", "none");
 		d3.select("#matrix-area").style("display", null);
+		d3.select("#togglematrix-table").style("display", "none");
 		break;
-	case "laplacian":
-		graphMode = LAPLACIAN;
+	case TOGGLEMATRIX:
 		d3.select("#g6-input").style("display", "none");
-		d3.select("#matrix-area").style("display", null);
+		d3.select("#matrix-area").style("display", "none");
+		d3.select("#togglematrix-table").style("display", null);
+		break;
+	case NONE:
+		d3.select("#g6-input").style("display", "none");
+		d3.select("#matrix-area").style("display", "none");
+		d3.select("#togglematrix-table").style("display", "none");
 		break;
 	}
+	
 	write_graph();
 }
 
@@ -1444,47 +1447,45 @@ function write_graph()
 {
 	switch (graphMode)
 	{
-	case GRAPH6:
-		write_g6(); break;
-	case ADJMATRIX_TEXT:
-		write_adj_matrix_text(); break;
-	case LAPLACIAN:
-		write_laplacian(); break;
+	case GRAPH6:       write_g6();           break;
+	case PATHLIST:     write_pathlist();     break;
+	case ADJMATRIX:    write_adjmatrix();    break;
+	case LAPLACIAN:    write_laplacian();    break;
+	case TOGGLEMATRIX: write_togglematrix(); break;
 	}
 }
 
-function get_adj_matrix()
+// return an adjacency matrix for the current graph
+function get_adjmatrix()
 {
-	am = [];
-	n = nodes.length;
+	var am = [];
+	var n = nodes.length;
 	for (var r=0; r<n; r++)
 	{
-		row = [];
+		var row = [];
 		for (var c=0; c<n; c++)
 			row.push(0);
 		am.push(row);
 	}
-	for (l of links)
+	for (var l of links)
 		am[l.source.index][l.target.index] = am[l.target.index][l.source.index] = 1;
 	return am;
 }
 
-function write_adj_matrix_text()
+function write_adjmatrix()
 {
 	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
-	am = get_adj_matrix();
-	n = nodes.length;
-	rows = [];
-	for (row of am)
-		rows.push(row.join(inter))
-	cols = n + (n-1)*inter.length + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
+	var am = get_adjmatrix();
+	var n = nodes.length;
+	var rows = [];
+	for (var row of am)
+		rows.push(row.join(inter));
+// 	var cols = n + (n-1)*inter.length + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
 	d3.select("#matrix-area")
-		.text(firstpre+rows.join(post+"\n"+pre)+lastpost)
-		.attr("rows", n+1)
-		.attr("cols", cols);
+		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
 }
 
-function load_adj_matrix_text()
+function load_adjmatrix()
 {
 
 }
@@ -1492,28 +1493,114 @@ function load_adj_matrix_text()
 function write_laplacian()
 {
 	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
-	lap = get_adj_matrix();
-	n = lap.length;
+	var lap = get_adjmatrix();
+	var n = lap.length;
 	for (var i=0; i<n; i++)
 	{
 		lap[i] = lap[i].map(function (x) {return -x;});
-		lap[i][i] = -lap[i].reduce(function(x,y){return x+y;}, 0);
+		lap[i][i] = -lap[i].reduce(function(x,y) {return x+y;}, 0);
 	}
-	rows = [];
-	for (row of lap)
-		rows.push(row.join(inter))
-// 	cols = n + (n-1)*(inter.length+1) + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
+	var rows = [];
+	for (var row of lap)
+		rows.push(row.join(inter));
+// 	var cols = n + (n-1)*(inter.length+1) + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
 	
 	d3.select("#matrix-area")
 		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
 }
 
-function write_adj_matrix_boxes()
+function load_laplacian()
 {
 
 }
 
-function load_adj_matrix_boxes()
+
+function write_togglematrix()
+{
+	var n = nodes.length;
+	var labels = [""];
+	var matrixEntries = [];
+	for (var i=0; i<n; i++)
+	{
+		labels.push(i);
+		var row = [""];
+		for (var j=0; j<n; j++)
+		{
+			row.push([i,j]);
+		}
+		matrixEntries.push(row);
+	}
+	var rowSelection = d3.select("#togglematrix-table").selectAll("tr")
+		.data(labels);
+	rowSelection.enter()
+		.append("tr")
+		.append("td")
+		.text(function(d) {return d;});
+	rowSelection.exit().remove();
+	rowSelection.each(function(di,i) {
+		if (i==0)
+		{
+			var entries = d3.select(this).selectAll("td").data(labels);
+			entries.enter()
+				.append("td")
+				.text(function(d) {return d;});
+			entries.exit().remove();
+		}
+		else
+		{
+			var entries = d3.select(this).selectAll("td").data(matrixEntries[di]);
+			entries.enter()
+				.append("td")
+				.append("input")
+				.attr("type", "checkbox")
+				.attr("id", function(d) {return "cb"+d[0]+"-"+d[1];})
+				.attr("disabled",function(d) {return d[0]==d[1]?"disabled":null;})
+				.on("change", togglematrix_onchange);
+			entries.exit().remove();
+		}
+	});
+	
+	for (var i=0; i<n; i++)
+		for (var j=0; j<n; j++)
+			document.getElementById("cb"+i+"-"+j).checked = false;
+	for (var l of links)
+	{
+		document.getElementById("cb"+l.source.index+"-"+l.target.index).checked = document.getElementById("cb"+l.target.index+"-"+l.source.index).checked = true;
+	}
+}
+
+function togglematrix_onchange(d)
+{
+	force.stop(); // FIX ME: I should be stopping the force every time I change the graph...
+	var checked = document.getElementById("cb"+d[1]+"-"+d[0]).checked = this.checked;
+	console.log(links);
+	console.log(d);
+	var edge = links.filter(function(l) {return l.source.index==d[0] && l.target.index==d[1] || l.source.index==d[1] && l.target.index==d[0];});
+	console.log(edge);
+	if (edge.length == 0 && checked)
+	{
+		save_state()
+		links.push({source:nodes[d[0]], target:nodes[d[1]], color:""});
+		console.log("I should add this");
+	}
+	else if (edge.length!=0 && !checked)
+	{
+		save_state()
+		console.log("I should delete this");
+		links[links.indexOf(edge[0])] = links[links.length-1];
+		links.length--;
+	}
+ 	update_graph();
+ 	write_graph();
+	force.start();
+}
+
+function write_pathlist()
+{
+
+}
+
+function load_pathlist()
 {
 
 }
@@ -1603,7 +1690,7 @@ function get_state()
 {
 	var nodesClone = JSON.parse(JSON.stringify(nodes));
 	var linksClone = [];
-	for (l of links)
+	for (var l of links)
 	{
 		if ("controlx" in l)
 			linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color, controlx:l.controlx, controly:l.controly});
@@ -1624,9 +1711,9 @@ function load_state(state)
 	links.length=0;
 	nodes.length=0;
 	update_graph();
-	for (n of state.nodes)
+	for (var n of state.nodes)
 		nodes.push(n);
-	for (l of state.links)
+	for (var l of state.links)
 		links.push(l);
 	nextID = state.nextID;
 	update_graph();
