@@ -6,7 +6,7 @@ A javascript program to help you quickly visualize and work with small graphs.
 
 I know that I, personally, have been quite frustrated by how frustrating it is to try to quickly visualize particular, small graphs.  There are some programs that can quickly draw graphs reasonably well (I have been using force-directed layouts in Sage), and some slower methods to precisely control the drawing (I have been using Ti*k*Z in LaTeX).  I am yet to find, however, a tool that combines the simplicity of an automatic layout with the direct control needed to quickly find the "right" way to visualize the structure of a graph if it isn't the way that you automatic drawer *wants* to draw it.
 
-This program seeks to address this by taking graphs in graph6 format, positioning the vertices automatically using a force directed layout (provided by the wonderful d3.js library), but giving you the control to drag vertices around, pinning them in place wherever they are dropped (as other vertices jiggle about trying to keep things pretty).  Double clicking a pinned vertex will unpin it again.  The hope is that this gives you the flexibility to get a reasonable drawing quickly.
+This program seeks to address this by taking graphs and positioning the vertices automatically using a force directed layout (provided by the wonderful d3.js library), but giving you the control to drag vertices around, pinning them in place wherever they are dropped (as other vertices jiggle about trying to keep things pretty).  Double clicking a pinned vertex will unpin it again.  The hope is that this gives you the flexibility to get a reasonable drawing quickly.
 
 StickyGraph also provides a few tools to edit and color the graph, which will be described more fully in the next section.
 
@@ -14,11 +14,17 @@ StickyGraph also provides a few tools to edit and color the graph, which will be
 
 The first thing you should most certainly do is point your favorite browser towards [http://jzacharyg.github.io/StickyGraph](http://jzacharyg.github.io/StickyGraph) and start playing!  You can also download or clone this repository and open index.html, if you would prefer.
 
+#### Getting a graph in/out
+
+So, you want a graph, huh.  You can always draw one, as described below, but if you'd like to do something else, direct your attention to the upper left part of the window.  That dropdown menu lets you select the graph input/output mode.  You can elect to enter a [graph6](http://users.cecs.anu.edu.au/~bdm/data/formats.txt) encoded graph, for instance, if you have some of those lying around (if you'd like a place to start, type `IheA@GUAo` and hit enter).  You can also go to the interactive adjacency matrix item to be presented with a grid of checkboxes, letting you easily toggle any entry in the adjacency matrix (if you want to add or remove some vertices, you'll need the add vertex button or the delete button, respectively, which we'll get to in more detail later).  You can also select any of the matrix options, but for the moment you cannot use these to input a graph, but it will display the relevant matrix for whatever graph you are currently working with.
+
 #### Drawing and Pinning
 
-You can now type a graph6-encoded graph into the box at the top left and hit enter (If you want a place to start, the Petersen Graph is given by `IheA@GUAo`).  StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms to accommodate.  You can always double click a vertex later if you want to unpin it.
+StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms to accommodate.  You can always double click a vertex later if you want to unpin it.
 
 If you hold the `alt`/`option` key while moving a vertex, it won't pin, which can be useful sometimes.  (More accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt`/`option` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also buttons up at the top to pin and unpin all vertices (they look like a pinned vertex and an unpinned vertex respectively).
+
+Want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
 
 #### Selecting and Coloring
 
@@ -35,7 +41,7 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
 - The **contract button** does a couple of slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't do anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
-If you choose to edit your graph in any way, StickyGraph will update the graph6 code accordingly, so it is always easy to pull your graph back into the rest of the world.
+If you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever, accordingly, so it is always easy to pull your graph back into the rest of the world.
 
 Don't like the changes you've made?  StickyGraph has you covered with some **undo** and **redo** buttons down at the bottom.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 

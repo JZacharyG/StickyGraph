@@ -199,9 +199,10 @@
 <select id="graph-mode-input" onchange="set_graph_mode()">
 	<option value="graph6">Graph6</option>
 	<!-- <option value="pathlist" disabled="disabled">Path List</option> -->
+	<option value="togglematrix">Interactive A.M.</option>
 	<option value="adjmatrix">Adj. Matrix</option>
 	<option value="laplacian">Laplacian</option>
-	<option value=togglematrix>Interactive A.M.</option>
+	<option value="normlaplacian">N. Laplacian</option>
 	<option value="none">None</option>
 </select>
 <input type="text" id="g6-input" value="" size="30" autofocus>
@@ -244,12 +245,13 @@ const DRAGPIN   = 0, // modes
 var mode = DRAGPIN;
 var colorMode = ""; // this would be the color if we are in color mode. Otherwise unused.
 var graphMode;
-const NONE         = 0,
-      GRAPH6       = 1,
-      PATHLIST     = 2,
-      TOGGLEMATRIX = 3,
-      ADJMATRIX    = 4,
-      LAPLACIAN    = 5;
+const NONE          = 0,
+      GRAPH6        = 1,
+      PATHLIST      = 2,
+      TOGGLEMATRIX  = 3,
+      ADJMATRIX     = 4,
+      LAPLACIAN     = 5,
+      NORMLAPLACIAN = 6;
 
 
 var color = d3.scale.category10(); // FIX ME? do we ever use this?
@@ -1402,12 +1404,13 @@ function set_graph_mode()
 {
 	switch (document.getElementById("graph-mode-input").value)
 	{
-	case "none":         graphMode = NONE;          break;
-	case "graph6":       graphMode = GRAPH6;        break;
-	case "pathlist":     graphMode = PATHLIST;      break;
-	case "togglematrix": graphMode = TOGGLEMATRIX;  break;
-	case "adjmatrix":    graphMode = ADJMATRIX;     break;
-	case "laplacian":    graphMode = LAPLACIAN;     break;
+	case "none":          graphMode = NONE;          break;
+	case "graph6":        graphMode = GRAPH6;        break;
+	case "pathlist":      graphMode = PATHLIST;      break;
+	case "togglematrix":  graphMode = TOGGLEMATRIX;  break;
+	case "adjmatrix":     graphMode = ADJMATRIX;     break;
+	case "laplacian":     graphMode = LAPLACIAN;     break;
+	case "normlaplacian": graphMode = NORMLAPLACIAN; break;
 	default:
 		console.error("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
 		return;
@@ -1424,6 +1427,7 @@ function set_graph_mode()
 		break;
 	case ADJMATRIX:
 	case LAPLACIAN:
+	case NORMLAPLACIAN:
 		d3.select("#g6-input").style("display", "none");
 		d3.select("#matrix-area").style("display", null);
 		d3.select("#togglematrix-table").style("display", "none");
@@ -1447,11 +1451,12 @@ function write_graph()
 {
 	switch (graphMode)
 	{
-	case GRAPH6:       write_g6();           break;
-	case PATHLIST:     write_pathlist();     break;
-	case ADJMATRIX:    write_adjmatrix();    break;
-	case LAPLACIAN:    write_laplacian();    break;
-	case TOGGLEMATRIX: write_togglematrix(); break;
+	case GRAPH6:        write_g6();            break;
+	case PATHLIST:      write_pathlist();      break;
+	case ADJMATRIX:     write_adjmatrix();     break;
+	case LAPLACIAN:     write_laplacian();     break;
+	case TOGGLEMATRIX:  write_togglematrix();  break;
+	case NORMLAPLACIAN: write_normlaplacian(); break;
 	}
 }
 
@@ -1490,6 +1495,8 @@ function load_adjmatrix()
 
 }
 
+function sum(v) { return v.reduce(function(x,y) {return x+y;}, 0); }
+
 function write_laplacian()
 {
 	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
@@ -1498,7 +1505,7 @@ function write_laplacian()
 	for (var i=0; i<n; i++)
 	{
 		lap[i] = lap[i].map(function (x) {return -x;});
-		lap[i][i] = -lap[i].reduce(function(x,y) {return x+y;}, 0);
+		lap[i][i] = -sum(lap[i]);
 	}
 	var rows = [];
 	for (var row of lap)
@@ -1514,6 +1521,30 @@ function load_laplacian()
 
 }
 
+function write_normlaplacian()
+{
+	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
+	var am = get_adjmatrix();
+	var deg = am.map(sum);
+	var nlap = [];
+	var n = am.length;
+	for (var i=0; i<n; i++)
+	{
+		nlap.push(am[i].map(function (x, j) {return (x==0)?0:-1/Math.sqrt(deg[i]*deg[j]);}));
+		nlap[i][i] = (deg[i]==0)?0:1;
+	}
+	var rows = [];
+	for (var row of nlap)
+		rows.push(row.join(inter));
+	
+	d3.select("#matrix-area")
+		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
+}
+
+function load_normlaplacian()
+{
+
+}
 
 function write_togglematrix()
 {
@@ -1581,12 +1612,10 @@ function togglematrix_onchange(d)
 	{
 		save_state()
 		links.push({source:nodes[d[0]], target:nodes[d[1]], color:""});
-		console.log("I should add this");
 	}
 	else if (edge.length!=0 && !checked)
 	{
 		save_state()
-		console.log("I should delete this");
 		links[links.indexOf(edge[0])] = links[links.length-1];
 		links.length--;
 	}
