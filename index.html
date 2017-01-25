@@ -617,38 +617,56 @@ var drag = force.drag()
 	.on("dragstart", drag_pin_drag_start)
 	.on("drag", drag_pin_drag)
 	.on("dragend", drag_pin_end);
-var shift_at_drag_start;
-var pinned_at_drag_start;
+var shiftAtStart;
+var pinnedAtStart;
+var selectedAtStart;
+var colorAtStart;
 var x0, y0;
-
+var nodeMoved;
 
 function drag_pin_drag_start(d)
 {
-	if (d3.event.sourceEvent.shiftKey)
-		shift_at_drag_start = true;
-	else
-		shift_at_drag_start = false;
-	pinned_at_drag_start = d3.select(this).classed("pinned");
-	
+	var v = d3.select(this);
+	shiftAtStart = d3.event.sourceEvent.shiftKey;
+	pinnedAtStart = v.classed("pinned");
+	selectedAtStart = v.classed("selected");
+	colorAtStart = d.color;
 	x0 = d.x;
 	y0 = d.y;
+	nodeMoved = false;
 	
-	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
-	d3.select(this).classed("pinned", pinNode);
+	v.each(do_mouse_down);
+	
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
+	if (pinNode)
+		v.each(pin);
+	else
+		v.each(unpin);
 }
 
 function drag_pin_drag(d)
 {
-	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
-	d3.select(this).classed("pinned", pinNode);
+	var v = d3.select(this);
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
+	if (pinNode)
+		v.each(pin);
+	else
+		v.each(unpin);
 	
-	if (dist(d.x,d.y,x0,y0)>20)
+	if (dist(d.x,d.y,x0,y0)>20 && !nodeMoved)
+	{
 		straighten_nbr_edges(d);
+		v.classed("selected", selectedAtStart);
+		v.classed("red orange yellow green blue purple", false)
+		 .classed(colorAtStart, true);
+		d.color = colorAtStart;
+		nodeMoved = true;
+	}
 }
 
 function drag_pin_end(d)
 {
-	pinNode = ((shift_at_drag_start || mode == COLOR)?xor(d3.event.sourceEvent.altKey, pinned_at_drag_start):!d3.event.sourceEvent.altKey);
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
 	if (pinNode)
 		d3.select(this).each(pin);
 	else
@@ -741,6 +759,7 @@ function curve_edge_drag_start(d)
 	d.source.fixed = 1;
 	target_pinned = d.target.fixed;
 	d.target.fixed = 1;
+	d3.select(this).each(do_mouse_down);
 }
 
 function curve_edge_drag(d)
@@ -774,17 +793,18 @@ function curve_edge_drag_end(d)
 
 function unpin(d)
 {
-	if (d.fixed)
+	if (d.fixed & 1)
 	{
-		d3.select(this).classed("pinned", d.fixed = 0);
 		straighten_nbr_edges(d);
 		force.resume();
 	}
+	d.fixed &= 2;
+	d3.select(this).classed("pinned", false);
 }
 
 function pin(d)
 {
-	d3.select(this).classed("pinned", d.fixed = 1);
+	d3.select(this).classed("pinned", d.fixed |= 1);
 }
 
 function change_mode(m, c)
@@ -814,7 +834,7 @@ function change_mode(m, c)
 				d3.select("#" + c + "-button").classed("selected", true);
 			break;
 		default:
-			console.log("unrecognized mode:" + m);
+			console.error("unrecognized mode:" + m);
 	}
 	add_event_listeners();
 }
@@ -825,69 +845,44 @@ function add_event_listeners()
 	{
 		case DRAGPIN:
 			link.on("click", null)
-				.on("mousedown", toggle_select)
 				.call(curveEdgeDrag);
 			node.on("dblclick", unpin)
 				.on("click", null)
-				.on("mousedown", toggle_select)
 				.call(drag);
 		break;
 		case ADDEDGE:
 			link.on("click", null)
-				.on("mousedown", toggle_select)
 				.call(curveEdgeDrag);
-			node.on("click", toggle_select)
+			node.on("click", do_mouse_down)
 				.on("dblclick", null)
-				.on("mousedown", null)
 				.call(addEdgeDrag);
 			break;
 		case ADDVERTEX:
-			console.log("unsupported feature: interactive add vertex");
+			console.error("unsupported feature: interactive add vertex");
 			break;
 		case CONTRACT:
 			link.on("click", function (d) {
 					save_state(); contract_edge(d); update_graph(); write_graph(); force.start(); })
-				.on("mousedown", null)
 				.call(noDrag);
 			node.on("dblclick", unpin)
 				.on("click", null)
-				.on("mousedown", toggle_select)
 				.call(drag);
 			break;
 		case DELETE:
 			link.on("click", function (d) {
 					save_state(); delete_edge(d); update_graph(); write_graph(); force.start(); })
-				.on("mousedown", null)
 				.call(noDrag);
 			node.on("dblclick", null)
 				.on("click", function (d) {
 					save_state(); delete_vertex(d); update_graph(); write_graph(); force.start(); })
-				.on("mousedown", null)
 				.call(noDrag);
 			break;
 		case COLOR:
-			if (colorMode == "")
-			{
-				link.on("click", null)
-					.on("mousedown", remove_color)
-					.call(curveEdgeDrag);
-				node.on("dblclick", unpin)
-					.on("click", null)
-					.on("mousedown", remove_color)
-					.call(drag);
-			}
-			else
-			{
-				link.on("click", null )
-					.on("mousedown", function()
-						{ toggle_color(d3.select(this),colorMode); })
-					.call(curveEdgeDrag);
-				node.on("dblclick", unpin)
-					.on("click", null)
-					.on("mousedown", function()
-						{ toggle_color(d3.select(this),colorMode); })
-					.call(drag);
-			}
+			link.on("click", null)
+				.call(curveEdgeDrag);
+			node.on("dblclick", unpin)
+				.on("click", null)
+				.call(drag);
 			break;
 	}
 }
@@ -1076,36 +1071,26 @@ function add_edge_button_press()
 		change_mode(ADDEDGE, "");
 }
 
-function toggle_select(d)
-{
-	if (d3.event.shiftKey)
-	{
-		var feature=d3.select(this);
-		feature.classed("selected", !feature.classed("selected"));
-	}
-}
-
-function remove_color(d)
+function do_mouse_down(d)
 {
 	var feature=d3.select(this);
-	if (d3.event.shiftKey)
-		feature.classed("selected", !feature.classed("selected"));
-	else
-		feature.classed("red orange yellow green blue purple", false)
-		.each(function(d,i) {d.color=""});
-}
-
-function toggle_color(feature, c)
-{
-	if (d3.event.shiftKey)
+	if (("sourceEvent" in d3.event)?d3.event.sourceEvent.shiftKey:d3.event.shiftKey)
 		feature.classed("selected", !feature.classed("selected"));
 	else
 	{
-		var colored = feature.classed(c);
-		feature.classed("red orange yellow green blue purple", false).each(function(d,i) {d.color=""});
-		
-		if (!colored)
-			feature.classed(c, true).each(function(d,i) {d.color=c});
+		switch (mode)
+		{
+		case COLOR:
+			var hadColor = feature.classed(colorMode);
+			feature
+				.classed("selected red orange yellow green blue purple", false)
+				.each(function(d,i) {d.color=""});
+			if (!hadColor)
+				feature
+					.classed(colorMode, true)
+					.each(function(d,i) {d.color=colorMode});
+			break;
+		}
 	}
 }
 
@@ -1273,8 +1258,8 @@ function color_button_press(button, c)
 		{
 			selected
 				.classed("selected red orange yellow green blue purple", false)
-				.each(function(d,i) {d.color=c});
-				selected.classed(c, true);
+				.each(function(d,i) {d.color=c})
+				.classed(c, true);
 		}
 	}
 }
@@ -1604,10 +1589,7 @@ function togglematrix_onchange(d)
 {
 	force.stop(); // FIX ME: I should be stopping the force every time I change the graph...
 	var checked = document.getElementById("cb"+d[1]+"-"+d[0]).checked = this.checked;
-	console.log(links);
-	console.log(d);
 	var edge = links.filter(function(l) {return l.source.index==d[0] && l.target.index==d[1] || l.source.index==d[1] && l.target.index==d[0];});
-	console.log(edge);
 	if (edge.length == 0 && checked)
 	{
 		save_state()
@@ -1715,6 +1697,7 @@ function load_g6()
 	force.start();
  	return false;
 }
+
 function get_state()
 {
 	var nodesClone = JSON.parse(JSON.stringify(nodes));
