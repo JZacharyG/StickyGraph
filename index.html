@@ -205,7 +205,7 @@
 	<option value="normlaplacian">N. Laplacian</option>
 	<option value="none">None</option>
 </select>
-<input type="text" id="g6-input" value="" size="30" autofocus>
+<input type="text" id="graph-input" value="" size="30" autofocus>
 <textarea id="matrix-area" readonly wrap="off"></textarea>
 <table id="togglematrix-table" style="text-align:center;font-size:12px;">
 </table>
@@ -776,7 +776,7 @@ function curve_edge_drag(d)
 
 function curve_edge_drag_end(d)
 {
-	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.1*dist(d.source.x, d.source.y, d.target.x, d.target.y))
+	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
 	{
 		d3.select("#v"+d.source.id).each(pin);
 		d3.select("#v"+d.target.id).each(pin);
@@ -1277,7 +1277,7 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("g6-input").value + "\n\\begin{tikzpicture}[scale=5]";
+	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
 	var min = Number.MAX_VALUE,
 		max = Number.MIN_VALUE;
 	var printLabels = labelRect.classed("selected");
@@ -1405,25 +1405,25 @@ function set_graph_mode()
 	{
 	case GRAPH6:
 	case PATHLIST:
-		d3.select("#g6-input").style("display", null);
-		document.getElementById("g6-input").focus();
+		d3.select("#graph-input").style("display", null);
+		document.getElementById("graph-input").focus();
 		d3.select("#matrix-area").style("display", "none");
 		d3.select("#togglematrix-table").style("display", "none");
 		break;
 	case ADJMATRIX:
 	case LAPLACIAN:
 	case NORMLAPLACIAN:
-		d3.select("#g6-input").style("display", "none");
+		d3.select("#graph-input").style("display", "none");
 		d3.select("#matrix-area").style("display", null);
 		d3.select("#togglematrix-table").style("display", "none");
 		break;
 	case TOGGLEMATRIX:
-		d3.select("#g6-input").style("display", "none");
+		d3.select("#graph-input").style("display", "none");
 		d3.select("#matrix-area").style("display", "none");
 		d3.select("#togglematrix-table").style("display", null);
 		break;
 	case NONE:
-		d3.select("#g6-input").style("display", "none");
+		d3.select("#graph-input").style("display", "none");
 		d3.select("#matrix-area").style("display", "none");
 		d3.select("#togglematrix-table").style("display", "none");
 		break;
@@ -1637,14 +1637,14 @@ function write_g6()
 			g6string = g6string.substring(0, c+1) + String.fromCharCode(((g6string.charCodeAt(c+1) - 63) | b) + 63) + g6string.substring(c+2);
 		}
 	}
-	document.getElementById("g6-input").value = g6string;
+	document.getElementById("graph-input").value = g6string;
 }
 
 function load_g6()
 {
 	save_state();
 	clear_graph();
-	var g6string=document.getElementById("g6-input").value;
+	var g6string=document.getElementById("graph-input").value;
 	var g6i=0;
 	var i, j, k, x;
 	
