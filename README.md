@@ -1,12 +1,12 @@
 # StickyGraph
 
-A javascript program to help you quickly visualize and work with small graphs.
+A javascript program to help you quickly visualize and work with small (undirected) graphs.
 
-## Synopsis
+## Purpose
 
 I know that I, personally, have been quite frustrated by how frustrating it is to try to quickly visualize particular, small graphs.  There are some programs that can quickly draw graphs reasonably well (I have been using force-directed layouts in Sage), and some slower methods to precisely control the drawing (I have been using Ti*k*Z in LaTeX).  I am yet to find, however, a tool that combines the simplicity of an automatic layout with the direct control needed to quickly find the "right" way to visualize the structure of a graph if it isn't the way that you automatic drawer *wants* to draw it.
 
-This program seeks to address this by taking graphs and positioning the vertices automatically using a force directed layout (provided by the wonderful d3.js library), but giving you the control to drag vertices around, pinning them in place wherever they are dropped (as other vertices jiggle about trying to keep things pretty).  Double clicking a pinned vertex will unpin it again.  The hope is that this gives you the flexibility to get a reasonable drawing quickly.
+This program seeks to address this by taking graphs and positioning the vertices automatically using a force directed layout (provided by the wonderful [d3.js](d3js.org) library), but giving you the control to drag vertices around, pinning them in place wherever they are dropped (as other vertices jiggle about trying to keep things pretty).  The hope is that this gives you the flexibility to get a reasonable drawing quickly.
 
 StickyGraph also provides a few tools to edit and color the graph, which will be described more fully in the next section.
 
@@ -14,13 +14,13 @@ StickyGraph also provides a few tools to edit and color the graph, which will be
 
 The first thing you should most certainly do is point your favorite browser towards [http://jzacharyg.github.io/StickyGraph](http://jzacharyg.github.io/StickyGraph) and start playing!  You can also download or clone this repository and open index.html, if you would prefer.
 
-#### Getting a graph in/out
+#### Getting a graph into (or out of) StickyGraph
 
-So, you want a graph, huh.  You can always draw one, as described below, but if you'd like to do something else, direct your attention to the upper left part of the window.  That dropdown menu lets you select the graph input/output mode.  You can elect to enter a [graph6](http://users.cecs.anu.edu.au/~bdm/data/formats.txt) encoded graph, for instance, if you have some of those lying around (if you'd like a place to start, type `IheA@GUAo` and hit enter).  You can also go to the interactive adjacency matrix item to be presented with a grid of checkboxes, letting you easily toggle any entry in the adjacency matrix (if you want to add or remove some vertices, you'll need the add vertex button or the delete button, respectively, which we'll get to in more detail later).  You can also select any of the matrix options, but for the moment you cannot use these to input a graph, but it will display the relevant matrix for whatever graph you are currently working with.
+So, you have a graph that you'd like to draw.  Cool!  Direct your attention to the upper left part of the window, please.  That dropdown menu lets you select the graph input/output mode.  You can elect to enter a [graph6](http://users.cecs.anu.edu.au/~bdm/data/formats.txt) encoded graph, for instance, if you have some of those lying around.  You could also go to the interactive adjacency matrix mode to be presented with a grid of checkboxes, letting you easily toggle any entry in the adjacency matrix (if you want to add or remove some vertices, you'll need the add vertex button or the delete button, respectively, which we'll get to in more detail later).  If you already have an adjacency matrix for your graph, you can go to that menu item.  Sticky graph will try to be smart about recognizing whatever format you use for adjacency matrices, as long as it contains a square number of zeros and ones.  More precisely, it will keep track of what characters appear before the first entry, after the last entry, between entries within a row, and between two rows, and will use these when outputting any future matrices.  Speaking of other matrices, you can also select Laplacian matrix mode and normalized Laplacian matrix mode from this menu, but you cannot use these to input a graph.  No matter which mode you are in, StickyGraph will always make sure that your chosen graph representation stays up to date as you edit the graph or switch between modes.
 
 #### Drawing and Pinning
 
-StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms to accommodate.  You can always double click a vertex later if you want to unpin it.
+StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always double click a vertex later if you want to unpin it.
 
 If you hold the `alt`/`option` key while moving a vertex, it won't pin, which can be useful sometimes.  (More accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt`/`option` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also buttons up at the top to pin and unpin all vertices (they look like a pinned vertex and an unpinned vertex respectively).
 
@@ -41,11 +41,11 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
 - The **contract button** does a couple of slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't do anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
-If you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever, accordingly, so it is always easy to pull your graph back into the rest of the world.
+If you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever else accordingly, so it is always easy to pull your graph back into the rest of the world.
 
 Don't like the changes you've made?  StickyGraph has you covered with some **undo** and **redo** buttons down at the bottom.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
 #### Labels and LaTeX Export
 
-Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, elements will be colored as you have colored them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z.
+Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
 

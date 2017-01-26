@@ -195,7 +195,7 @@
 
 
 
-<form id="graph-input-form" action="" onsubmit="return load_g6();">
+<form id="graph-input-form" action="" onsubmit="return load_graph();">
 <select id="graph-mode-input" onchange="set_graph_mode()">
 	<option value="graph6">Graph6</option>
 	<!-- <option value="pathlist" disabled="disabled">Path List</option> -->
@@ -206,7 +206,8 @@
 	<option value="none">None</option>
 </select>
 <input type="text" id="graph-input" value="" size="30" autofocus>
-<textarea id="matrix-area" readonly wrap="off"></textarea>
+<input type="submit" id="submit-button" value="Draw!"/>
+<textarea id="matrix-area" readonly wrap="off" style="display:none;"></textarea>
 <table id="togglematrix-table" style="text-align:center;font-size:12px;">
 </table>
 
@@ -1400,7 +1401,7 @@ function set_graph_mode()
 		console.error("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
 		return;
 	}
-
+	write_graph();
 	switch (graphMode)
 	{
 	case GRAPH6:
@@ -1428,8 +1429,16 @@ function set_graph_mode()
 		d3.select("#togglematrix-table").style("display", "none");
 		break;
 	}
-	
-	write_graph();
+	if (graphMode == ADJMATRIX)
+	{
+		d3.select("#matrix-area").attr("readonly", null);
+		d3.select("#submit-button").style("display", null);
+	}	
+	else
+	{
+		d3.select("#matrix-area").attr("readonly", "");
+		d3.select("#submit-button").style("display", "none");
+	}
 }
 
 function write_graph()
@@ -1443,6 +1452,17 @@ function write_graph()
 	case TOGGLEMATRIX:  write_togglematrix();  break;
 	case NORMLAPLACIAN: write_normlaplacian(); break;
 	}
+}
+
+function load_graph()
+{
+	switch (graphMode)
+	{
+	case GRAPH6:        load_g6();            break;
+	case PATHLIST:      load_pathlist();      break;
+	case ADJMATRIX:     load_adjmatrix();     break;
+	}
+	return false;
 }
 
 // return an adjacency matrix for the current graph
@@ -1462,29 +1482,90 @@ function get_adjmatrix()
 	return am;
 }
 
+var pre="[[", interEntry=", ", interRow="],\n[", post="]]";
+
 function write_adjmatrix()
 {
-	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
 	var am = get_adjmatrix();
 	var n = nodes.length;
 	var rows = [];
 	for (var row of am)
-		rows.push(row.join(inter));
-// 	var cols = n + (n-1)*inter.length + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
-	d3.select("#matrix-area")
-		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
+		rows.push(row.join(interEntry));
+	document.getElementById("matrix-area")
+		.value = pre+rows.join(interRow)+post;
 }
 
 function load_adjmatrix()
 {
-
+	var ams = document.getElementById("matrix-area").value.trim();
+	console.log(ams);
+	var flatam = ams
+		.replace(/[^01]/g, "")
+		.split("");
+	var n = Math.sqrt(flatam.length);
+	if (!Number.isInteger(n))
+	{
+		console.log("Number of entries is not square");
+		return;
+	}
+	var am = []
+	for (var i=0; i<n; i++)
+		am.push(flatam.slice(n*i, n*i+n));
+	console.log(am);
+	if (n==0)
+	{
+		clear_graph();
+		console.log("empty matrix found");
+		return;
+	}
+	for (var i=0; i<n; i++)
+	{
+		if (am[i].length != n)
+		{
+			console.log("Row "+i+" doesn't have length "+n);
+			return;
+		}
+		if (am[i][i] != "0")
+		{
+			console.log("Loop at vertex "+i+" not allowed");
+			return;
+		}
+		for (var j=0; j<i; j++)
+		{
+			if (am[i][j] != am[j][i])
+			{
+				console.log("Asymmetry at "+i+","+j+" not allowed");
+				return;
+			}
+		}
+	}
+	pre = ams.match(/^[^01]*/);
+	post = ams.match(/[^01]*$/);
+	if (n >= 2)
+	{
+		interEntry = ams.match(/[01]([^01]*)[01]/)[1];
+		rex = new RegExp("(?:[^01]*[01]){"+n+"}([^01]*)[01]");
+		interRow = ams.match(rex)[1];
+	}
+	force.stop();
+	for (var i=nodes.length; i<n; i++)
+		nodes.push({id:i, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
+	nextID = nodes.length = n;
+	links.length = 0;
+	for (var i=0; i<n; i++)
+		for (var j=0; j<i; j++)
+			if (am[i][j] == "1")
+				links.push({source:nodes[i], target:nodes[j], color:""});
+	update_graph();
+	document.getElementById("matrix-area")
+		.value = pre+am.map(function (a) {return a.join(interEntry);}).join(interRow)+post;
+	force.start();
 }
 
 function sum(v) { return v.reduce(function(x,y) {return x+y;}, 0); }
 
 function write_laplacian()
 {
-	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
 	var lap = get_adjmatrix();
 	var n = lap.length;
 	for (var i=0; i<n; i++)
@@ -1494,11 +1575,10 @@ function write_laplacian()
 	}
 	var rows = [];
 	for (var row of lap)
-		rows.push(row.join(inter));
-// 	var cols = n + (n-1)*(inter.length+1) + Math.max(firstpre.length, pre.length) + Math.max(post.length,lastpost.length) + 1;
+		rows.push(row.join(interEntry));
 	
-	d3.select("#matrix-area")
-		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
+	document.getElementById("matrix-area")
+		.value = pre+rows.join(interRow)+post;
 }
 
 function load_laplacian()
@@ -1508,7 +1588,6 @@ function load_laplacian()
 
 function write_normlaplacian()
 {
-	var firstpre="[[", pre="[", inter=", ", post="],", lastpost="]]" 
 	var am = get_adjmatrix();
 	var deg = am.map(sum);
 	var nlap = [];
@@ -1520,10 +1599,10 @@ function write_normlaplacian()
 	}
 	var rows = [];
 	for (var row of nlap)
-		rows.push(row.join(inter));
+		rows.push(row.join(interEntry));
 	
-	d3.select("#matrix-area")
-		.text(firstpre+rows.join(post+"\n"+pre)+lastpost);
+	document.getElementById("matrix-area")
+		.value = pre+rows.join(interRow)+post;
 }
 
 function load_normlaplacian()
@@ -1534,7 +1613,7 @@ function load_normlaplacian()
 function write_togglematrix()
 {
 	var n = nodes.length;
-	var labels = [""];
+	var labels = (n==0)?["(Add a vertex, first!)"]:[""];
 	var matrixEntries = [];
 	for (var i=0; i<n; i++)
 	{
@@ -1556,7 +1635,7 @@ function write_togglematrix()
 	rowSelection.each(function(di,i) {
 		if (i==0)
 		{
-			var entries = d3.select(this).selectAll("td").data(labels);
+			var entries = d3.select(this).selectAll("td").data(labels, function(d){return d;});
 			entries.enter()
 				.append("td")
 				.text(function(d) {return d;});
@@ -1602,7 +1681,7 @@ function togglematrix_onchange(d)
 		links.length--;
 	}
  	update_graph();
- 	write_graph();
+ 	//write_graph();
 	force.start();
 }
 
@@ -1695,7 +1774,6 @@ function load_g6()
 	
 	update_graph();
 	force.start();
- 	return false;
 }
 
 function get_state()
