@@ -1482,7 +1482,7 @@ function get_adjmatrix()
 	return am;
 }
 
-var pre="[[", interEntry=", ", interRow="],\n[", post="]]";
+var pre="[[", interEntry=", ", interRow="],\n [", post="]]";
 
 function write_adjmatrix()
 {
@@ -1539,8 +1539,8 @@ function load_adjmatrix()
 			}
 		}
 	}
-	pre = ams.match(/^[^01]*/);
-	post = ams.match(/[^01]*$/);
+	pre = ams.match(/^[^01]*/)[0];
+	post = ams.match(/[^01]*$/)[0];
 	if (n >= 2)
 	{
 		interEntry = ams.match(/[01]([^01]*)[01]/)[1];
