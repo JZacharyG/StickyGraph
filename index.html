@@ -161,6 +161,9 @@
 	background-color:rgba(255,255,255,.8);
 	font-family:"Lucida Console", Monaco, monospace;
 	overflow:auto;
+	-moz-tab-size : 4;
+	  -o-tab-size : 4;
+	     tab-size : 4;
 }
 
 #TikZ-area {
@@ -577,10 +580,8 @@ d3.selectAll(".color-button-rect")
 
 d3.select("body").append("div").attr("id", "TikZ-div").style("display", "none").append("textarea").attr("id", "TikZ-area").attr({id:"TikZ-area", readonly:true, wrap:"off"}).style("width", ""+(width/3)+"px");
 
-drawingBoard.append("rect")
+var overlay = drawingBoard.append("rect")
 	.attr("class", "overlay")
-	.attr("width", 100*width)
-	.attr("height", 100*height)
 	.call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
 
 resize();
@@ -590,6 +591,7 @@ function resize() {
 	windowWidth = window.innerWidth, windowHeight = window.innerHeight;
 	dx = (windowWidth-width)/2, dy = (windowHeight-height)/2;
 	drawingBoard.attr("viewBox", ""+(-dx)+" "+(-dy)+" "+(windowWidth)+" "+(windowHeight));
+	overlay.attr({x:-dx, y: -dy, width:windowWidth, height: windowHeight});
 	d3.select("#TikZ-area").style("max-width", ""+(windowWidth-110)+"px");
 }
 
@@ -1278,16 +1280,24 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n\\begin{tikzpicture}[scale=5]";
-	var min = Number.MAX_VALUE,
-		max = Number.MIN_VALUE;
+	tikz = "% (In the preamble)\n\n\\usepackage{tikz}\n\\usetikzlibrary{backgrounds}\n\\tikzset{vertex/.style={draw=none, ultra thick, fill, inner sep = .09cm, circle}}\n\\tikzset{edge/.style={very thick, gray}}\n\n\n\n% (In the body)\n\n\\begin{tikzpicture}[scale=1]";
+	
 	var printLabels = labelRect.classed("selected");
-
-	for (var i = 0; i < nodes.length; i++)
-	{
-		min = Math.min(min, nodes[i].x);
-		max = Math.max(max, nodes[i].x);
-	}
+	
+// 	var min = Number.MAX_VALUE,
+// 		max = Number.MIN_VALUE;
+// 	
+// 	for (var i = 0; i < nodes.length; i++)
+// 	{
+// 		min = Math.min(min, nodes[i].x);
+// 		max = Math.max(max, nodes[i].x);
+// 	}
+// 	console.log(min);
+// 	console.log(max);
+// 	console.log(max-min);
+// 	console.log(width);
+	
+	var min = 0, max = 60; // magic numbers... works about right for the force settings
 	
 	for (var i = 0; i < nodes.length; i++)
 	{
@@ -1299,10 +1309,12 @@ function generate_TikZ()
 		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].index + ") {};";
 	}
 	
+	tikz += "\n\t\\begin{scope}[on background layer]";
+	
 	for (var i = 0; i < links.length; i++)
 	{
 		var l = links[i];
-		tikz += "\n\t\\draw[edge";
+		tikz += "\n\t\t\\draw[edge";
 		if (l.color != "")
 			tikz += ", " + l.color;
 		tikz += "] (v" + l.target.index + ") ";
@@ -1312,10 +1324,10 @@ function generate_TikZ()
 		}
 		else
 			tikz += "to";
-		tikz+= " (v" + l.source.index + ");";
+		tikz += " (v" + l.source.index + ");";
 	}
 	
-	tikz += "\n\\end{tikzpicture}";
+	tikz += "\n\t\\end{scope}\n\\end{tikzpicture}";
 	
 	button.classed("selected",true);
 	d3.select("#TikZ-div")

@@ -12,7 +12,7 @@ StickyGraph also provides a few tools to edit and color the graph, which will be
 
 ## Usage
 
-The first thing you should most certainly do is point your favorite browser towards [http://jzacharyg.github.io/StickyGraph](http://jzacharyg.github.io/StickyGraph) and start playing!  You can also download or clone this repository and open index.html, if you would prefer.
+The first thing you should most certainly do is point your favorite browser towards [jzacharyg.github.io/StickyGraph](http://jzacharyg.github.io/StickyGraph) and start playing!  You can also download or clone this repository and open index.html, if you would prefer.
 
 #### Getting a graph into (or out of) StickyGraph
 
