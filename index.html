@@ -24,32 +24,34 @@
 .node {
 	cursor: move;
 	fill: #000;
-	stroke: #fff;
-	stroke-width: 2px;
+	stroke: #000;
+	stroke-width: 6px;
 }
 
-.node.pinned {
-	stroke: #999;
-}
+
+
+
 
 .link {
 	fill:none;
 	stroke: #999;
 	stroke-width: 3px;
+	stroke-dashoffset:-11px;
+	stroke-linecap: round;
 }
 
-.node.red, .color-button-rect.red { fill: #f00; }
-.link.red { stroke: #f00; }
-.node.orange, .color-button-rect.orange { fill: #f90; }
-.link.orange { stroke: #f90; }
-.node.yellow, .color-button-rect.yellow { fill: #ee4; }
-.link.yellow { stroke: #ee4; }
-.node.green, .color-button-rect.green { fill: #0e0; }
-.link.green { stroke: #0e0; }
-.node.blue, .color-button-rect.blue { fill: #06f; }
-.link.blue { stroke: #06f; }
-.node.purple, .color-button-rect.purple { fill: #c0c; }
-.link.purple { stroke: #c0c; }
+.node.red, .node.red.selected, .color-button-rect.red { fill: #f00; }
+.link.red, .node.red { stroke: #f00; }
+.node.orange, .node.orange.selected, .color-button-rect.orange { fill: #f90; }
+.link.orange, .node.orange { stroke: #f90; }
+.node.yellow, .node.yellow.selected, .color-button-rect.yellow { fill: #ee4; }
+.link.yellow, .node.yellow { stroke: #ee4; }
+.node.green, .node.green.selected, .color-button-rect.green { fill: #0e0; }
+.link.green, .node.green { stroke: #0e0; }
+.node.blue, .node.blue.selected, .color-button-rect.blue { fill: #06f; }
+.link.blue, .node.blue { stroke: #06f; }
+.node.purple, .node.purple.selected, .color-button-rect.purple { fill: #c0c; }
+.link.purple, .node.purple { stroke: #c0c; }
 
 .link.selected {
 	stroke: #fc0;
@@ -58,11 +60,16 @@
 
 .node.selected {
 	stroke: #fc0;
-	stroke-width:4px;
 }
+
+.node.pinned {
+	fill: #999;
+}
+
 .label {
 	text-anchor: middle;
 	font-family: Arial, Helvetica, sans-serif;
+	pointer-events: none;
 }
 
 #graph-input-form {
@@ -348,18 +355,22 @@ var selectAllButton = d3.select("body")
 	.append("svg")
 	.classed("edit-button",true)
 	.style({right:"50px", "top":"50px"});
+selectAllButton
+	.append("defs")
+	.append("svg:clipPath")
+	.attr("id", "clip")
+	.append("rect")
+	.attr({id:"clip-rect", x:-17, y:-10, width:34, height:20});
 selectAllButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", select_all_nodes);
 selectAllButton.append("path")
 	.classed("link",true)
-	.attr("d","M 0 0 L 17 0");
-selectAllButton.append("path")
-	.classed("link", true)
-	.attr("d", "M 0 0 L -17 0");
+	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
+	.attr("clip-path", "url(#clip)");
 selectAllButton.append("circle")
 	.classed("node selected", true)
-	.attr({cx:"0px", cy:"0px", r:"9px"});
+	.attr({cx:"0px", cy:"0px", r:"5px"});
 
 
 var selectEdgesButton = d3.select("body")
@@ -371,13 +382,11 @@ selectEdgesButton.append("rect")
 	.on("click", select_all_edges);
 selectEdgesButton.append("path")
 	.classed("link selected",true)
-	.attr("d","M 0 0 L 17 0");
-selectEdgesButton.append("path")
-	.classed("link selected", true)
-	.attr("d", "M 0 0 L -17 0");
+	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
+	.attr("clip-path", "url(#clip)");
 selectEdgesButton.append("circle")
 	.classed("node", true)
-	.attr({cx:"0px", cy:"0px", r:"9px"});
+	.attr({cx:"0px", cy:"0px", r:"5px"});
 
 
 var selectNoneButton = d3.select("body")
@@ -389,13 +398,11 @@ selectNoneButton.append("rect")
 	.on("click", select_none);
 selectNoneButton.append("path")
 	.classed("link",true)
-	.attr("d","M 0 0 L 17 0");
-selectNoneButton.append("path")
-	.classed("link", true)
-	.attr("d", "M 0 0 L -17 0");
+	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
+	.attr("clip-path", "url(#clip)");
 selectNoneButton.append("circle")
 	.classed("node", true)
-	.attr({cx:"0px", cy:"0px", r:"9px"});
+	.attr({cx:"0px", cy:"0px", r:"5px"});
 
 
 var pinButton = d3.select("body")
@@ -407,13 +414,11 @@ pinButton.append("rect")
 	.on("click", pin_all);
 pinButton.append("path")
 	.classed("link",true)
-	.attr("d","M 0 0 L 17 0");
-pinButton.append("path")
-	.classed("link", true)
-	.attr("d", "M 0 0 L -17 0");
+	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
+	.attr("clip-path", "url(#clip)");
 pinButton.append("circle")
 	.classed("node pinned", true)
-	.attr({cx:"0px", cy:"0px", r:"9px"});
+	.attr({cx:"0px", cy:"0px", r:"5px"});
 
 
 var unpinButton = d3.select("body")
@@ -425,13 +430,11 @@ unpinButton.append("rect")
 	.on("click", unpin_all);
 unpinButton.append("path")
 	.classed("link",true)
-	.attr("d","M 0 0 L 17 0");
-unpinButton.append("path")
-	.classed("link", true)
-	.attr("d", "M 0 0 L -17 0");
+	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
+	.attr("clip-path", "url(#clip)");
 unpinButton.append("circle")
 	.classed("node", true)
-	.attr({cx:"0px", cy:"0px", r:"9px"});
+	.attr({cx:"0px", cy:"0px", r:"5px"});
 
 var TikZButton = d3.select("body")
 	.append("svg")
@@ -656,7 +659,7 @@ function drag_pin_drag(d)
 	else
 		v.each(unpin);
 	
-	if (dist(d.x,d.y,x0,y0)>20 && !nodeMoved)
+	if (dist(d.x,d.y,x0,y0)>5 && !nodeMoved)
 	{
 		straighten_nbr_edges(d);
 		v.classed("selected", selectedAtStart);
@@ -683,19 +686,24 @@ var addEdgeDrag = d3.behavior.drag()
 	.on("drag", new_edge_drag)
 	.on("dragend", new_edge_drag_end);
 
-var dragLink;
+var dragLink, newEdgeX, newEdgeY;
 
 function new_edge_drag_start(d)
 {
+	newEdgeX = d.x, newEdgeY = d.y;
 	dragLink = drawingBoard.select("#links")
-		.append("line")
+		.append("path")
 		.classed("link", true)
-		.attr({"x1":d.x, "y1":d.y, "x2":d.x, "y2":d.y});
+		.attr("d", "M "+d.x+" "+d.y+" L "+d.x+" "+d.y)
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()) + " 11";});
 }
 
 function new_edge_drag(d)
 {
-	dragLink.attr({"x1":d.x, "y1":d.y, "x2":d3.event.x, "y2":d3.event.y});
+	newEdgeX = d3.event.x, newEdgeY = d3.event.y;
+	dragLink
+		.attr("d", "M "+d.x+" "+d.y+" L "+newEdgeX+" "+newEdgeY)
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()) + " 11";});
 	if (d3.event.sourceEvent.shiftKey)
 		dragLink.classed("selected", true);
 	else
@@ -704,9 +712,8 @@ function new_edge_drag(d)
 
 function new_edge_drag_end(d1)
 {
-	var x = dragLink.attr("x2"), y=dragLink.attr("y2");
 	v2 = drawingBoard.selectAll(".node").filter(function (d2) {
-		return ((d2.x - x) * (d2.x - x) + (d2.y - y) * (d2.y - y)) <= 100; })
+		return dist(d2.x,d2.y, newEdgeX, newEdgeY) <= 10; })
 	dragLink.remove();
 	if (!v2.empty())
 	{
@@ -751,7 +758,8 @@ function straighten_nbr_edges(d)
 	drawingBoard.selectAll(".link")
 		.filter(function (l) { return l.source.id == d.id || l.target.id == d.id; })
 		.each(function (l) {delete l.controlx; delete l.controly;})
-		.attr("d", get_edge_path);
+		.attr("d", get_edge_path)
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 }
 
 var source_pinned, target_pinned;
@@ -769,7 +777,9 @@ function curve_edge_drag(d)
 {
 	d.controlx = d3.event.x;
 	d.controly = d3.event.y;
-	d3.select(this).attr("d", get_edge_path);
+	d3.select(this)
+		.attr("d", get_edge_path)
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});;
 	
 // 	if (d3.event.sourceEvent.shiftKey)
 // 		dragLink.classed("selected", true);
@@ -1280,7 +1290,7 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "% (In the preamble)\n\n\\usepackage{tikz}\n\\usetikzlibrary{backgrounds}\n\\tikzset{vertex/.style={draw=none, ultra thick, fill, inner sep = .09cm, circle}}\n\\tikzset{edge/.style={very thick, gray}}\n\n\n\n% (In the body)\n\n\\begin{tikzpicture}[scale=1]";
+	tikz = "% (In the preamble)\n\n\\usepackage{tikz}\n\\usetikzlibrary{backgrounds}\n\\tikzset{vertex/.style={draw=none, line width = 2.4pt, fill, inner sep = .09cm, circle}}\n\\tikzset{edge/.style={very thick, gray, line cap=round}}\n\n\n\n% (In the body)\n\n\\begin{tikzpicture}[scale=1]";
 	
 	var printLabels = labelRect.classed("selected");
 	
@@ -1363,7 +1373,7 @@ function update_graph()
 		.append("circle")
 		.classed("node", true)
 		.attr("id", function(d) {return "v"+d.id;})
-		.attr("r", "9px")
+		.attr("r", "5px")
 		.each(function(d) {d3.select(this).classed(d.color, true);})
 		.classed("pinned", function(d) {return d.fixed;});
 	node.exit().remove();
@@ -1392,7 +1402,8 @@ function tick()
 	node.attr("cx", function(d) { return d.x; })
 		.attr("cy", function(d) { return d.y; });
 	
-	link.attr("d", get_edge_path);
+	link.attr("d", get_edge_path)
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	
 	label.attr("x", function(d) { return d.x; })
 		.attr("y", function(d) { return d.y; })
