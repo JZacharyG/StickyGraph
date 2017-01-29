@@ -1278,7 +1278,7 @@ function generate_TikZ()
 	}
 	
 	d3
-	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n% " + document.getElementById("graph-input").value + "\n\\begin{tikzpicture}[scale=5]";
+	tikz = "% (In The Preamble)\n\n\\usepackage{tikz}\n\\tikzset{vertex/.style={draw, fill, inner sep = .05cm, circle}}\n\\tikzset{edge/.style={thick}}\n\n\n\n% (In The Body)\n\n\\begin{tikzpicture}[scale=5]";
 	var min = Number.MAX_VALUE,
 		max = Number.MIN_VALUE;
 	var printLabels = labelRect.classed("selected");
@@ -1301,17 +1301,18 @@ function generate_TikZ()
 	
 	for (var i = 0; i < links.length; i++)
 	{
+		var l = links[i];
 		tikz += "\n\t\\draw[edge";
-		if (links[i].color != "")
-			tikz += ", " + links[i].color;
-		tikz += "] (v" + links[i].target.index + ") ";
-		if ("controlx" in links[i])
+		if (l.color != "")
+			tikz += ", " + l.color;
+		tikz += "] (v" + l.target.index + ") ";
+		if ("controlx" in l)
 		{
-			tikz += ".. controls (" + (links[i].controlx/(max-min)).toFixed(3) + ", " + (-links[i].controly/(max-min)).toFixed(3) + ") .."
+			tikz += ".. controls (" + ((l.target.x+2*l.controlx)/(3*(max-min))).toFixed(3) + ", " + ((-l.target.y-2*l.controly)/(3*(max-min))).toFixed(3) + ") and (" + ((l.source.x+2*l.controlx)/(3*(max-min))).toFixed(3) + ", " + ((-l.source.y-2*l.controly)/(3*(max-min))).toFixed(3) + ") .."
 		}
 		else
 			tikz += "to";
-		tikz+= " (v" + links[i].source.index + ");";
+		tikz+= " (v" + l.source.index + ");";
 	}
 	
 	tikz += "\n\\end{tikzpicture}";
