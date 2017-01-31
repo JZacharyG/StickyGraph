@@ -49,3 +49,25 @@ Don't like the changes you've made?  StickyGraph has you covered with some **und
 
 Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
 
+#### Keyboard Stuff
+
+Most buttons have an equivalent key!  They work exactly as if you had pressed their respective button.
+
+- Graph Editing
+  - add vertex: `=`
+  - add edge: `-`
+  - delete: `delete`
+  - contract: `/`
+- Colors
+  - red: `r`
+  - orange: `o`
+  - yellow: `y`
+  - green: `g`
+  - blue: `b`
+  - violet: `v`
+- Select and Pin
+  - select all vertices: `n`
+  - select all edges: `m`
+  - select nothing: `,`
+  - pin everything: `p`
+  - unpin everything: `u`

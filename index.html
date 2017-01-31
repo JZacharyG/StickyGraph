@@ -50,8 +50,8 @@
 .link.green, .node.green { stroke: #0e0; }
 .node.blue, .node.blue.selected, .color-button-rect.blue { fill: #06f; }
 .link.blue, .node.blue { stroke: #06f; }
-.node.purple, .node.purple.selected, .color-button-rect.purple { fill: #c0c; }
-.link.purple, .node.purple { stroke: #c0c; }
+.node.violet, .node.violet.selected, .color-button-rect.violet { fill: #c0c; }
+.link.violet, .node.violet { stroke: #c0c; }
 
 .link.selected {
 	stroke: #fc0;
@@ -499,7 +499,7 @@ d3.select("body")
 	.append("rect")
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "no-color-button")
-	.on("click", function () {color_button_press(d3.select(this), "");})
+	.on("click", function () {color_button_press("");})
 	.style("fill", "black");
 
 d3.select("body")
@@ -510,7 +510,7 @@ d3.select("body")
 	.classed("red",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "red-button")
-	.on("click", function () {color_button_press(d3.select(this), "red");});
+	.on("click", function () {color_button_press("red");});
 
 d3.select("body")
 	.append("svg")
@@ -520,7 +520,7 @@ d3.select("body")
 	.classed("orange",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "orange-button")
-	.on("click", function () {color_button_press(d3.select(this), "orange");});
+	.on("click", function () {color_button_press("orange");});
 
 d3.select("body")
 	.append("svg")
@@ -530,7 +530,7 @@ d3.select("body")
 	.classed("yellow",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "yellow-button")
-	.on("click", function () {color_button_press(d3.select(this), "yellow");});
+	.on("click", function () {color_button_press("yellow");});
 
 d3.select("body")
 	.append("svg")
@@ -540,7 +540,7 @@ d3.select("body")
 	.classed("green",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "green-button")
-	.on("click", function () {color_button_press(d3.select(this), "green");});
+	.on("click", function () {color_button_press("green");});
 
 d3.select("body")
 	.append("svg")
@@ -550,17 +550,17 @@ d3.select("body")
 	.classed("blue",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "blue-button")
-	.on("click", function () {color_button_press(d3.select(this), "blue");});
+	.on("click", function () {color_button_press("blue");});
 
 d3.select("body")
 	.append("svg")
 	.classed("color-button",true)
 	.style({"right":"10px", "top":"250px"})
 	.append("rect")
-	.classed("purple",true)
+	.classed("violet",true)
 	.classed("color-button-rect mode-button", true)
-	.attr("id", "purple-button")
-	.on("click", function () {color_button_press(d3.select(this), "purple");});
+	.attr("id", "violet-button")
+	.on("click", function () {color_button_press("violet");});
 
 d3.selectAll(".color-button")
 	.attr("viewBox", "-20 -20 40 40 ")
@@ -663,7 +663,7 @@ function drag_pin_drag(d)
 	{
 		straighten_nbr_edges(d);
 		v.classed("selected", selectedAtStart);
-		v.classed("red orange yellow green blue purple", false)
+		v.classed("red orange yellow green blue violet", false)
 		 .classed(colorAtStart, true);
 		d.color = colorAtStart;
 		nodeMoved = true;
@@ -801,6 +801,51 @@ function curve_edge_drag_end(d)
 		d.source.fixed = source_pinned;
 		d.target.fixed = target_pinned;
 		d3.select(this).attr("d", get_edge_path);
+	}
+}
+
+d3.select("body").on("keydown", keyboard_handler);
+function keyboard_handler()
+{
+	var e = d3.event;
+	//console.log(e);
+	activeID = document.activeElement.id;
+	if (activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
+		return;
+	switch (e.keyCode)
+	{
+		case 68:  // d: switch to drag/pin mode
+			change_mode(DRAGPIN, ""); break;
+		case 187: // =: add vertex
+			add_vertex_button_press(); break;
+		case 189: // -: add edge
+			add_edge_button_press(); break;
+		case 8:   // delete: delete stuff
+			delete_button_press(); break;
+		case 191: // /: contract/identify stuff
+			contract_button_press(); break;
+		case 80:  // p: pin
+			pin_all(); break;
+		case 85:  // u: unpin
+			unpin_all(); break;
+		case 78:  // n: select all vertices
+			select_all_nodes(); break;
+		case 77:  // m: select all edges
+			select_all_edges(); break;
+		case 188: // ,: select nothing
+			select_none(); break;
+		case 82:  // r: color mode red
+			color_button_press("red"); break;
+		case 79:  // o: color mode orange
+			color_button_press("orange"); break;
+		case 89:  // y: color mode yellow
+			color_button_press("yellow"); break;
+		case 71:  // g: color mode green
+			color_button_press("green"); break;
+		case 66:  // b: color mode blue
+			color_button_press("blue"); break;
+		case 86:  // p: color mode violet
+			color_button_press("violet"); console.log("trying"); break;
 	}
 }
 
@@ -1078,7 +1123,7 @@ function add_vertex_button_press()
 
 function add_edge_button_press()
 {
-	if (d3.select(this).classed("selected"))
+	if (mode == ADDEDGE)
 		change_mode(DRAGPIN, "");
 	else
 		change_mode(ADDEDGE, "");
@@ -1096,7 +1141,7 @@ function do_mouse_down(d)
 		case COLOR:
 			var hadColor = feature.classed(colorMode);
 			feature
-				.classed("selected red orange yellow green blue purple", false)
+				.classed("selected red orange yellow green blue violet", false)
 				.each(function(d,i) {d.color=""});
 			if (!hadColor)
 				feature
@@ -1137,7 +1182,7 @@ function delete_button_press()
 	}
 	else
 	{
-		if (d3.select(this).classed("selected"))
+		if (mode == DELETE)
 			change_mode(DRAGPIN, "");
 		else
 			change_mode(DELETE, "");
@@ -1158,7 +1203,7 @@ function contract_button_press()
 	
 	if (selectedNodes.empty() && selectedLinks.empty())
 	{
-		if (d3.select(this).classed("selected"))
+		if (mode == CONTRACT)
 			change_mode(DRAGPIN, "");
 		else
 			change_mode(CONTRACT, "");
@@ -1249,7 +1294,7 @@ function contract_button_press()
 	}
 }
 
-function color_button_press(button, c)
+function color_button_press(c)
 {
 	if (d3.event.shiftKey)
 	{
@@ -1262,7 +1307,7 @@ function color_button_press(button, c)
 		var selected = drawingBoard.selectAll(".selected");
 		if (selected.empty())
 		{
-			if (button.classed("selected"))
+			if (mode == COLOR && colorMode == c)
 				change_mode(DRAGPIN, "");
 			else
 				change_mode(COLOR, c);
@@ -1270,7 +1315,7 @@ function color_button_press(button, c)
 		else
 		{
 			selected
-				.classed("selected red orange yellow green blue purple", false)
+				.classed("selected red orange yellow green blue violet", false)
 				.each(function(d,i) {d.color=c})
 				.classed(c, true);
 		}
