@@ -458,7 +458,6 @@ var labelButton = d3.select("body")
 	.style("left", "10px")
 labelRect = labelButton.append("rect")
 	.classed("edit-button-rect selected",true)
-	.classed("edit-button-rect selected",true)
 	.on("click", function () { 
 		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
 		check_show_labels(); });
@@ -1543,6 +1542,7 @@ function set_graph_mode()
 		console.error("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
 		return;
 	}
+	document.getElementById("graph-mode-input").blur();
 	write_graph();
 	switch (graphMode)
 	{
@@ -1564,6 +1564,8 @@ function set_graph_mode()
 		d3.select("#graph-input").style("display", "none");
 		d3.select("#matrix-area").style("display", "none");
 		d3.select("#togglematrix-table").style("display", null);
+		labelRect.classed("selected", true);
+		check_show_labels();
 		break;
 	case NONE:
 		d3.select("#graph-input").style("display", "none");
@@ -1575,6 +1577,7 @@ function set_graph_mode()
 	{
 		d3.select("#matrix-area").attr("readonly", null);
 		d3.select("#submit-button").style("display", null);
+		document.getElementById("matrix-area").focus();
 	}	
 	else
 	{
@@ -1604,6 +1607,7 @@ function load_graph()
 	case PATHLIST:      load_pathlist();      break;
 	case ADJMATRIX:     load_adjmatrix();     break;
 	}
+	document.getElementById("graph-input").blur();
 	return false;
 }
 
@@ -1640,43 +1644,41 @@ function write_adjmatrix()
 function load_adjmatrix()
 {
 	var ams = document.getElementById("matrix-area").value.trim();
-	console.log(ams);
 	var flatam = ams
 		.replace(/[^01]/g, "")
 		.split("");
 	var n = Math.sqrt(flatam.length);
 	if (!Number.isInteger(n))
 	{
-		console.log("Number of entries is not square");
+		console.warn("Number of entries is not square");
 		return;
 	}
 	var am = []
 	for (var i=0; i<n; i++)
 		am.push(flatam.slice(n*i, n*i+n));
-	console.log(am);
 	if (n==0)
 	{
 		clear_graph();
-		console.log("empty matrix found");
+		console.warn("empty matrix found");
 		return;
 	}
 	for (var i=0; i<n; i++)
 	{
 		if (am[i].length != n)
 		{
-			console.log("Row "+i+" doesn't have length "+n);
+			console.warn("Row "+i+" doesn't have length "+n);
 			return;
 		}
 		if (am[i][i] != "0")
 		{
-			console.log("Loop at vertex "+i+" not allowed");
+			console.warn("Loop at vertex "+i+" not allowed");
 			return;
 		}
 		for (var j=0; j<i; j++)
 		{
 			if (am[i][j] != am[j][i])
 			{
-				console.log("Asymmetry at "+i+","+j+" not allowed");
+				console.warn("Asymmetry at "+i+","+j+" not allowed");
 				return;
 			}
 		}
