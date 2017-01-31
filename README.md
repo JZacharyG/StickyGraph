@@ -22,7 +22,7 @@ So, you have a graph that you'd like to draw.  Cool!  Direct your attention to t
 
 StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always double click a vertex later if you want to unpin it.
 
-If you hold the `alt`/`option` key while moving a vertex, it won't pin, which can be useful sometimes.  (More accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt`/`option` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also buttons up at the top to pin and unpin all vertices (they look like a pinned vertex and an unpinned vertex respectively).
+If you hold the `alt` key while moving a vertex, it won't pin, which can be useful sometimes.  (More accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also two buttons up at the top that look like a pinned and an unpinned vertex respectively.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
 
 Want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
 
@@ -49,10 +49,18 @@ Don't like the changes you've made?  StickyGraph has you covered with some **und
 
 Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
 
-#### Keyboard Stuff
+#### Using a Keyboard
 
-Most buttons have an equivalent key!  They work exactly as if you had pressed their respective button.
+Most buttons in StickyGraph have an equivalent key that you can press, however most of the keys on your keyboard do not, at this time, have an equivalent button on screen.  Let this list be a guide for your fingers.
 
+- Select and Pin
+  - select a vertex: hold `shift` and type the label (`shift`+`#`)
+  - select an edge: hold `shift` while typing the two endpoints, separated by a dash (`shift`+`#-#`)
+  - select all vertices: `n`
+  - select all edges: `m`
+  - select nothing: `,`
+  - pin vertices: `p`
+  - unpin vertices: `u`
 - Graph Editing
   - add vertex: `=`
   - add edge: `-`
@@ -65,9 +73,8 @@ Most buttons have an equivalent key!  They work exactly as if you had pressed th
   - green: `g`
   - blue: `b`
   - violet: `v`
-- Select and Pin
-  - select all vertices: `n`
-  - select all edges: `m`
-  - select nothing: `,`
-  - pin everything: `p`
-  - unpin everything: `u`
+  - remove color: `x`
+
+
+
+

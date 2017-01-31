@@ -804,12 +804,14 @@ function curve_edge_drag_end(d)
 	}
 }
 
-d3.select("body").on("keydown", keyboard_handler);
-function keyboard_handler()
+var shiftv = [null,null], shiftIndex = 0;
+d3.select("body")
+	.on("keydown", keydown_handler)
+	.on("keyup", keyup_handler);
+function keydown_handler()
 {
 	var e = d3.event;
-	//console.log(e);
-	activeID = document.activeElement.id;
+	var activeID = document.activeElement.id;
 	if (activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
 		return;
 	switch (e.keyCode)
@@ -819,7 +821,11 @@ function keyboard_handler()
 		case 187: // =: add vertex
 			add_vertex_button_press(); break;
 		case 189: // -: add edge
-			add_edge_button_press(); break;
+			if (e.shiftKey && shiftv[0] != null)
+				shiftIndex=1;
+			else
+				add_edge_button_press();
+			break;
 		case 8:   // delete: delete stuff
 			delete_button_press(); break;
 		case 191: // /: contract/identify stuff
@@ -834,6 +840,8 @@ function keyboard_handler()
 			select_edges_button_press(); break;
 		case 188: // ,: select nothing
 			select_none(); break;
+		case 88:  // x: color removal mode
+			color_button_press(""); break;
 		case 82:  // r: color mode red
 			color_button_press("red"); break;
 		case 79:  // o: color mode orange
@@ -846,7 +854,40 @@ function keyboard_handler()
 			color_button_press("blue"); break;
 		case 86:  // v: color mode violet
 			color_button_press("violet"); console.log("trying"); break;
+		case 16:  // shift: select vertices and edges by keyboard
+			shiftv = [null,null], shiftIndex = 0; break;
 	}
+	if (e.shiftKey && 48 <= e.keyCode && e.keyCode <= 57) // a number was pressed!
+	{
+		if (shiftv[shiftIndex] == null)
+			shiftv[shiftIndex] = e.keyCode-48;
+		else
+			shiftv[shiftIndex] = 10*shiftv[shiftIndex] + (e.keyCode-48);
+	}
+}
+
+function keyup_handler()
+{
+	var e = d3.event;
+	var activeID = document.activeElement.id;
+	if (e.keyCode != 16 || activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
+		return;
+	var feature = null;
+	if (shiftIndex == 0 && shiftv[0] != null)
+	{
+		feature = drawingBoard
+			.selectAll(".node")
+			.filter(function (d) {return d.index == shiftv[0];});
+	}
+	else if (shiftIndex == 1 && shiftv[0] != null && shiftv[1] != null)
+	{
+		feature = drawingBoard
+			.selectAll(".link")
+			.filter(function (d) { return (d.source.index == shiftv[0] && d.target.index == shiftv[1]) || (d.source.index == shiftv[1] && d.target.index == shiftv[0]); });
+	}
+	if (feature != null)
+		feature.classed("selected", function (d) { return !d3.select(this).classed("selected");});
+	shiftv = [null,null], shiftIndex = 0;	
 }
 
 function unpin(d)
@@ -1327,8 +1368,12 @@ function color_button_press(c)
 	if (d3.event.shiftKey)
 	{
 		if (c!="")
-			drawingBoard.selectAll("."+c)
-				.classed("selected", true);
+		{
+			var colored = drawingBoard.selectAll("."+c);
+			var alreadyAllSelected = true;
+			colored.each(function(){if (!d3.select(this).classed("selected")) alreadyAllSelected = false;});
+			colored.classed("selected", !alreadyAllSelected);
+		}
 	}
 	else
 	{
@@ -1763,7 +1808,7 @@ function write_togglematrix()
 
 function togglematrix_onchange(d)
 {
-	force.stop(); // FIX ME: I should be stopping the force every time I change the graph...
+	//force.stop(); // FIX ME: should I be stopping the force every time I change the graph?
 	var checked = document.getElementById("cb"+d[1]+"-"+d[0]).checked = this.checked;
 	var edge = links.filter(function(l) {return l.source.index==d[0] && l.target.index==d[1] || l.source.index==d[1] && l.target.index==d[0];});
 	if (edge.length == 0 && checked)
