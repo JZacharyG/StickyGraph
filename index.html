@@ -363,7 +363,7 @@ selectAllButton
 	.attr({id:"clip-rect", x:-17, y:-10, width:34, height:20});
 selectAllButton.append("rect")
 	.classed("edit-button-rect", true)
-	.on("click", select_all_nodes);
+	.on("click", select_vertices_button_press);
 selectAllButton.append("path")
 	.classed("link",true)
 	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
@@ -379,7 +379,7 @@ var selectEdgesButton = d3.select("body")
 	.style({"right":"50px", "top":"90px"});
 selectEdgesButton.append("rect")
 	.classed("edit-button-rect", true)
-	.on("click", select_all_edges);
+	.on("click", select_edges_button_press);
 selectEdgesButton.append("path")
 	.classed("link selected",true)
 	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
@@ -411,7 +411,7 @@ var pinButton = d3.select("body")
 	.style({"right":"90px", "top":"50px"});
 pinButton.append("rect")
 	.classed("edit-button-rect", true)
-	.on("click", pin_all);
+	.on("click", pin_button_press);
 pinButton.append("path")
 	.classed("link",true)
 	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
@@ -427,7 +427,7 @@ var unpinButton = d3.select("body")
 	.style({"right":"90px", "top":"10px"});
 unpinButton.append("rect")
 	.classed("edit-button-rect", true)
-	.on("click", unpin_all);
+	.on("click", unpin_button_press);
 unpinButton.append("path")
 	.classed("link",true)
 	.attr("d", "M 11 0 L 17 0 M -11 0 L -17 0")
@@ -825,13 +825,13 @@ function keyboard_handler()
 		case 191: // /: contract/identify stuff
 			contract_button_press(); break;
 		case 80:  // p: pin
-			pin_all(); break;
+			pin_button_press(); break;
 		case 85:  // u: unpin
-			unpin_all(); break;
+			unpin_button_press(); break;
 		case 78:  // n: select all vertices
-			select_all_nodes(); break;
+			select_vertices_button_press(); break;
 		case 77:  // m: select all edges
-			select_all_edges(); break;
+			select_edges_button_press(); break;
 		case 188: // ,: select nothing
 			select_none(); break;
 		case 82:  // r: color mode red
@@ -844,7 +844,7 @@ function keyboard_handler()
 			color_button_press("green"); break;
 		case 66:  // b: color mode blue
 			color_button_press("blue"); break;
-		case 86:  // p: color mode violet
+		case 86:  // v: color mode violet
 			color_button_press("violet"); console.log("trying"); break;
 	}
 }
@@ -945,13 +945,41 @@ function add_event_listeners()
 	}
 }
 
-function pin_all() { node.each(pin); }
+function pin_button_press()
+{
+	selected = drawingBoard.selectAll(".node.selected");
+	if (selected.size() == 0)
+		node.each(pin);
+	else
+		selected.each(pin);
+}
 
-function unpin_all() { node.each(unpin); }
+function unpin_button_press()
+{
+	selected = drawingBoard.selectAll(".node.selected");
+	if (selected.size() == 0)
+		node.each(unpin);
+	else
+		selected.each(unpin);
+}
 
-function select_all_nodes() { node.classed("selected", true); }
+function select_vertices_button_press()
+{
+	selected = drawingBoard.selectAll(".node.selected");
+	if (selected.size() == nodes.length)
+		selected.classed("selected", false);
+	else
+		node.classed("selected", true);
+}
 
-function select_all_edges() { link.classed("selected", true); }
+function select_edges_button_press()
+{
+	selected = drawingBoard.selectAll(".link.selected");
+	if (selected.size() == links.length)
+		selected.classed("selected", false);
+	else
+		link.classed("selected", true);
+}
 
 function select_none() { drawingBoard.selectAll(".selected").classed("selected", false); }
 
