@@ -47,7 +47,9 @@ Don't like the changes you've made?  StickyGraph has you covered with some **und
 
 #### Labels and LaTeX Export
 
-Down in the bottom left corner of the screen are two little buttons.  One toggles the visibility of labels, and the other displays some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
+Down in the bottom left corner of the screen are two little buttons.  The bottom one toggles the visibility of labels.  If ever you don't like the way your graph is labeled, you can drag a label onto another vertex and they will swap.  Or you can just hide the labels entirely and try to put the issue out of your mind.
+
+The top button will display some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
 
 #### Using a Keyboard
 

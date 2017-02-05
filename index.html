@@ -69,7 +69,7 @@
 .label {
 	text-anchor: middle;
 	font-family: Arial, Helvetica, sans-serif;
-	pointer-events: none;
+	/* pointer-events: none; */
 }
 
 #graph-input-form {
@@ -803,6 +803,45 @@ function curve_edge_drag_end(d)
 	}
 }
 
+
+var swapLabelsDrag = d3.behavior.drag()
+	.on("dragstart", swap_labels_drag_start)
+	.on("drag", swap_labels_drag)
+	.on("dragend", swap_labels_drag_end);
+
+var swapLabelsX, swapLabelsY;
+
+function swap_labels_drag_start(d)
+{
+	force.stop();
+	swapLabelsX = d.x, swapLabelsY = d.y;
+}
+
+function swap_labels_drag(d)
+{
+	swapLabelsX = d3.event.x, swapLabelsY = d3.event.y;
+	d3.select(this)
+		.attr({x:swapLabelsX, y:swapLabelsY});
+}
+
+function swap_labels_drag_end(d1)
+{
+	v2 = drawingBoard.selectAll(".node").filter(function (d2) {
+		return dist(d2.x,d2.y, swapLabelsX, swapLabelsY) <= 10; })
+	if (!v2.empty() && v2.datum().id != d1.id)
+	{
+		d2 = v2.datum();
+		save_state();
+		swap_labels(d1.index, d2.index);
+		tick();
+	}
+	else
+	{
+		d3.select(this).attr({x:d1.x, y:d1.y});
+	}
+}
+
+
 var shiftv = [null,null], shiftIndex = 0;
 d3.select("body")
 	.on("keydown", keydown_handler)
@@ -852,7 +891,7 @@ function keydown_handler()
 		case 66:  // b: color mode blue
 			color_button_press("blue"); break;
 		case 86:  // v: color mode violet
-			color_button_press("violet"); console.log("trying"); break;
+			color_button_press("violet"); break;
 		case 16:  // shift: select vertices and edges by keyboard
 			shiftv = [null,null], shiftIndex = 0; break;
 	}
@@ -983,6 +1022,7 @@ function add_event_listeners()
 				.call(drag);
 			break;
 	}
+	label.call(swapLabelsDrag);
 }
 
 function pin_button_press()
@@ -1022,6 +1062,19 @@ function select_edges_button_press()
 }
 
 function select_none() { drawingBoard.selectAll(".selected").classed("selected", false); }
+
+function swap_labels(l1, l2)
+{
+	if (l1<0 || l2 < 0 || l1 >=nodes.length || l2 >= nodes.length)
+		return;
+	var temp = nodes[l2];
+	nodes[l2] = nodes[l1];
+	nodes[l2].index = l2;
+	nodes[l1] = temp;
+	nodes[l1].index = l1;
+	update_graph();
+	write_graph();
+}
 
 function new_vertex()
 {
