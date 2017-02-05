@@ -56,18 +56,20 @@ The top button will display some LaTeX code to include your beautiful graph in a
 Most buttons in StickyGraph have an equivalent key that you can press, however most of the keys on your keyboard do not, at this time, have an equivalent button on screen.  Let this list be a guide for your fingers.
 
 - Select and Pin
-  - select a vertex: hold `shift` and type the label (`shift`+`#`)
-  - select an edge: hold `shift` while typing the two endpoints, separated by a dash (`shift`+`#-#`)
+  - select a vertex: hit `shift`, type the label, then hit `enter`
+  - select an edge: hit `shift`, type the first endpoint, `space`, the second endpoint, then hit `enter`
   - select all vertices: `n`
   - select all edges: `m`
   - select nothing: `,`
   - pin vertices: `p`
   - unpin vertices: `u`
 - Graph Editing
-  - add vertex: `=`
-  - add edge: `-`
-  - delete: `delete`
-  - contract: `/`
+  - add vertex mode: `=`
+  - add edge mode: `-`
+  - add a single edge: type the first endpoint, `space`, the second endpoint, then hit `enter` while in "add edge" mode
+  - delete mode: `delete`
+  - contract mode: `/`
+  - swap two labels: hit `s`, type the first endpoint, `space`, the second endpoint, then hit `enter`
 - Colors
   - red: `r`
   - orange: `o`

@@ -28,10 +28,6 @@
 	stroke-width: 6px;
 }
 
-
-
-
-
 .link {
 	fill:none;
 	stroke: #999;
@@ -184,7 +180,15 @@
 	resize:both;
 }
 
-.label, #graph-input-form, #TikZ-button-text, .edit-button-text {
+#keyboard-info {
+	position: fixed;
+	bottom: 10px;
+	left: 52px;
+	pointer-events: none;
+	font-family:"Lucida Console", Monaco, monospace;
+}
+
+.label, #graph-input-form, #TikZ-button-text, .edit-button-text, #keyboard-info {
 	-webkit-touch-callout: none; /* iOS Safari */
 	-webkit-user-select: none;   /* Chrome/Safari/Opera */
 	-khtml-user-select: none;    /* Konqueror */
@@ -220,14 +224,10 @@
 <textarea id="matrix-area" readonly wrap="off" style="display:none;"></textarea>
 <table id="togglematrix-table" style="text-align:center;font-size:12px;">
 </table>
-
-
-
-<!-- 
-<input type="submit" value="Draw!">
- -->
 <!--  contenteditable: http://html5demos.com/contenteditable -->
 </form>
+
+<text id="keyboard-info"></text>
 
 
 
@@ -815,6 +815,7 @@ function swap_labels_drag_start(d)
 {
 	force.stop();
 	swapLabelsX = d.x, swapLabelsY = d.y;
+	clearKeyMode();
 }
 
 function swap_labels_drag(d)
@@ -841,29 +842,64 @@ function swap_labels_drag_end(d1)
 	}
 }
 
+var keyMode = null;
+var vInput = [null,null], vIndex = 0;
 
-var shiftv = [null,null], shiftIndex = 0;
+function clearKeyMode()
+{
+	keyMode = null;
+	vInput = [null,null], vIndex = 0;
+	d3.select("#keyboard-info").text("");
+}
+
+function writeKeyboardInfo()
+{
+	var s = "";
+	if (keyMode != null)
+		s += keyMode + " ";
+	if (vInput[0] != null)
+		s += vInput[0]+" ";
+	if (vInput[1] != null)
+		s += vInput[1];
+	d3.select("#keyboard-info").text(s);
+}
+
 d3.select("body")
-	.on("keydown", keydown_handler)
-	.on("keyup", keyup_handler);
+	.on("keydown", keydown_handler);
 function keydown_handler()
 {
 	var e = d3.event;
 	var activeID = document.activeElement.id;
 	if (activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
-		return;
-	switch (e.keyCode)
 	{
+		clearKeyMode();
+		return;
+	}
+	if (48 <= e.keyCode && e.keyCode <= 57) // a number was pressed!
+	{
+		if (vInput[vIndex] == null)
+			vInput[vIndex] = e.keyCode-48;
+		else
+			vInput[vIndex] = 10*vInput[vIndex] + (e.keyCode-48);
+		
+		if (vInput[vIndex] < nodes.length)
+			writeKeyboardInfo();
+		else
+			clearKeyMode();
+	}
+	else if (e.keyCode != 32 && e.keyCode != 13)
+		clearKeyMode();
+	
+	if (!e.metaKey && !e.altKey && !e.ctrlKey)
+	{
+		switch (e.keyCode)
+		{
 		case 68:  // d: switch to drag/pin mode
 			change_mode(DRAGPIN, ""); break;
 		case 187: // =: add vertex
 			add_vertex_button_press(); break;
 		case 189: // -: add edge
-			if (e.shiftKey && shiftv[0] != null)
-				shiftIndex=1;
-			else
-				add_edge_button_press();
-			break;
+			add_edge_button_press(); break;
 		case 8:   // delete: delete stuff
 			delete_button_press(); break;
 		case 191: // /: contract/identify stuff
@@ -892,40 +928,66 @@ function keydown_handler()
 			color_button_press("blue"); break;
 		case 86:  // v: color mode violet
 			color_button_press("violet"); break;
-		case 16:  // shift: select vertices and edges by keyboard
-			shiftv = [null,null], shiftIndex = 0; break;
+		case 83:  // s: swap a labels for the specified pair of vertices
+			keyMode = "Swap Labels";
+			writeKeyboardInfo();
+			break;
+		case 16:  // shift: select a vertex or edge by keyboard
+			keyMode = "Select";
+			writeKeyboardInfo();
+			break;
+		case 32:  // space: separate a pair of vertices
+			if (vInput[0] != null)
+				vIndex=1;
+			break;
+		case 13:  // return: process vertex/vertex pair input
+			if (keyMode == "Select")
+			{
+				var feature = null;
+				if (vIndex == 0 && vInput[0] != null)
+				{
+					feature = drawingBoard
+						.selectAll(".node")
+						.filter(function (d) {return d.index == vInput[0];});
+				}
+				else if (vIndex == 1 && vInput[0] != null && vInput[1] != null)
+				{
+					feature = drawingBoard
+						.selectAll(".link")
+						.filter(function (d) { return (d.source.index == vInput[0] && d.target.index == vInput[1]) || (d.source.index == vInput[1] && d.target.index == vInput[0]); });
+				}
+				if (feature != null)
+					feature.classed("selected", function (d) { return !d3.select(this).classed("selected");});
+			}
+			else if (keyMode == "Swap Labels")
+			{
+				if (vIndex == 1 && vInput[0] != null && vInput[1] != null)
+					swap_labels(vInput[0],vInput[1]);
+			}
+			else if (mode == ADDEDGE)
+			{
+				var v0 = vInput[0], v1 = vInput[1];
+				if (vIndex == 1 && v0 != null && v1 != null && v0 >= 0 && v0 < nodes.length && v1 >= 0 && v1 < nodes.length)
+				{
+					var edgeExists = false;
+					for (var l of links)
+						if (l.source.index == v0 && l.target.index == v1 ||
+						l.source.index == v1 && l.target.index == v0)
+							edgeExists = true;
+					if (!edgeExists)
+					{
+						save_state();
+						links.push({source:nodes[vInput[0]], target:nodes[vInput[1]], color:""});
+						update_graph();
+						write_graph();
+						force.start();
+					}
+				}
+			}
+			clearKeyMode();
+			break;
+		}
 	}
-	if (e.shiftKey && 48 <= e.keyCode && e.keyCode <= 57) // a number was pressed!
-	{
-		if (shiftv[shiftIndex] == null)
-			shiftv[shiftIndex] = e.keyCode-48;
-		else
-			shiftv[shiftIndex] = 10*shiftv[shiftIndex] + (e.keyCode-48);
-	}
-}
-
-function keyup_handler()
-{
-	var e = d3.event;
-	var activeID = document.activeElement.id;
-	if (e.keyCode != 16 || activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
-		return;
-	var feature = null;
-	if (shiftIndex == 0 && shiftv[0] != null)
-	{
-		feature = drawingBoard
-			.selectAll(".node")
-			.filter(function (d) {return d.index == shiftv[0];});
-	}
-	else if (shiftIndex == 1 && shiftv[0] != null && shiftv[1] != null)
-	{
-		feature = drawingBoard
-			.selectAll(".link")
-			.filter(function (d) { return (d.source.index == shiftv[0] && d.target.index == shiftv[1]) || (d.source.index == shiftv[1] && d.target.index == shiftv[0]); });
-	}
-	if (feature != null)
-		feature.classed("selected", function (d) { return !d3.select(this).classed("selected");});
-	shiftv = [null,null], shiftIndex = 0;	
 }
 
 function unpin(d)
@@ -1027,6 +1089,7 @@ function add_event_listeners()
 
 function pin_button_press()
 {
+	clearKeyMode();
 	selected = drawingBoard.selectAll(".node.selected");
 	if (selected.size() == 0)
 		node.each(pin);
@@ -1036,6 +1099,7 @@ function pin_button_press()
 
 function unpin_button_press()
 {
+	clearKeyMode();
 	selected = drawingBoard.selectAll(".node.selected");
 	if (selected.size() == 0)
 		node.each(unpin);
@@ -1045,6 +1109,7 @@ function unpin_button_press()
 
 function select_vertices_button_press()
 {
+	clearKeyMode();
 	selected = drawingBoard.selectAll(".node.selected");
 	if (selected.size() == nodes.length)
 		selected.classed("selected", false);
@@ -1054,6 +1119,7 @@ function select_vertices_button_press()
 
 function select_edges_button_press()
 {
+	clearKeyMode();
 	selected = drawingBoard.selectAll(".link.selected");
 	if (selected.size() == links.length)
 		selected.classed("selected", false);
@@ -1061,7 +1127,7 @@ function select_edges_button_press()
 		link.classed("selected", true);
 }
 
-function select_none() { drawingBoard.selectAll(".selected").classed("selected", false); }
+function select_none() { clearKeyMode(); drawingBoard.selectAll(".selected").classed("selected", false); }
 
 function swap_labels(l1, l2)
 {
@@ -1214,6 +1280,7 @@ function split_edge(d)
 
 function add_vertex_button_press()
 {
+	clearKeyMode();
 	save_state();
 	var edges_selected = false;
 	
@@ -1244,6 +1311,7 @@ function add_vertex_button_press()
 
 function add_edge_button_press()
 {
+	clearKeyMode();
 	if (mode == ADDEDGE)
 		change_mode(DRAGPIN, "");
 	else
@@ -1252,6 +1320,7 @@ function add_edge_button_press()
 
 function do_mouse_down(d)
 {
+	clearKeyMode();
 	var feature=d3.select(this);
 	if (("sourceEvent" in d3.event)?d3.event.sourceEvent.shiftKey:d3.event.shiftKey)
 		feature.classed("selected", !feature.classed("selected"));
@@ -1275,6 +1344,7 @@ function do_mouse_down(d)
 
 function delete_button_press()
 {
+	clearKeyMode(); // FIX ME: maybe delete anything typed first?
 	var changes=false;
 	var selectedLinks = drawingBoard.selectAll(".link.selected");
 	var selectedNodes = drawingBoard.selectAll(".node.selected");
@@ -1312,6 +1382,7 @@ function delete_button_press()
 
 function contract_button_press()
 {
+	clearKeyMode();
 	var toContract = [];
 	var newv; // the index of the first vertex being contracted, which will be the resulting vertex.
 	var adj = [];
@@ -1417,6 +1488,7 @@ function contract_button_press()
 
 function color_button_press(c)
 {
+	clearKeyMode();
 	if (d3.event.shiftKey)
 	{
 		if (c!="")
@@ -2010,6 +2082,7 @@ function load_state(state)
 
 function undo()
 {
+	clearKeyMode();
 	if (undoStack.length == 0)
 		return;
 	redoStack.push(get_state());
@@ -2018,6 +2091,7 @@ function undo()
 
 function redo()
 {
+	clearKeyMode();
 	if (redoStack.length == 0)
 		return;
 	undoStack.push(get_state());
