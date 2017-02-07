@@ -70,6 +70,8 @@ Most buttons in StickyGraph have an equivalent key that you can press, however m
   - delete mode: `delete`
   - contract mode: `/`
   - swap two labels: hit `s`, type the first endpoint, `space`, the second endpoint, then hit `enter`
+  - undo: `z`
+  - redo: `y` or `shift`+`y`
 - Colors
   - red: `r`
   - orange: `o`

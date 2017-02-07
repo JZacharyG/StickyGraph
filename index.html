@@ -894,6 +894,10 @@ function keydown_handler()
 	{
 		switch (e.keyCode)
 		{
+		case 90:  // z: undo
+			if (!e.shiftKey) { undo(); break; } // shift-z should fall through to redo
+		case 89:  // y: redo
+			redo(); break;
 		case 68:  // d: switch to drag/pin mode
 			change_mode(DRAGPIN, ""); break;
 		case 187: // =: add vertex
