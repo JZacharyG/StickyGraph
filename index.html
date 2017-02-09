@@ -126,7 +126,7 @@
 	pointer-events: none;
 }
 
-.color-button {
+.color-button-svg {
 	position:fixed;
 	pointer-events: none;
 }
@@ -199,6 +199,125 @@
 	-moz-user-select: none;      /* Firefox */
 	-ms-user-select: none;       /* IE/Edge */
 	user-select: none;           /* non-prefixed version */
+}
+
+
+/* Large windows */
+@media (min-height: 455px) and (min-width: 451px) {
+	#add-v-button-svg       { right: 10px; bottom: 130px; }
+	#add-e-button-svg       { right: 10px; bottom: 90px; }
+	#delete-button-svg      { right: 10px; bottom: 50px; }
+	#contract-button-svg    { right: 10px; bottom: 10px; }
+	#select-v-button-svg    { right: 50px; top: 50px; }
+	#select-e-button-svg    { right: 50px; top: 90px; }
+	#select-none-button-svg { right: 50px; top: 10px; }
+	#pin-button-svg         { right: 90px; top: 50px; }
+	#unpin-button-svg       { right: 90px; top: 10px; }
+	#TikZ-button-svg        { left: 10px; bottom: 50px; }
+	#label-button-svg       { bottom: 10px; left: 10px; }
+	#undo-button-svg        { bottom: 10px; right: 50%; }
+	#redo-button-svg        { bottom: 10px; left: 50%; }
+	#no-color-button-svg    { right: 10px; top: 10px; }
+	#red-button-svg         { right: 10px; top: 50px; }
+	#orange-button-svg      { right: 10px; top: 90px; }
+	#yellow-button-svg      { right: 10px; top: 130px; }
+	#green-button-svg       { right: 10px; top: 170px; }
+	#blue-button-svg        { right: 10px; top: 210px; }
+	#violet-button-svg      { right: 10px; top: 250px; }
+}
+
+/* not tall enough, wide enough that we aren't worrying about that space */
+@media (max-height: 454px) and (min-height: 335px) and (min-width: 451px) {
+	#add-v-button-svg       { bottom: 10px; right: 130px; }
+	#add-e-button-svg       { bottom: 10px; right: 90px; }
+	#delete-button-svg      { bottom: 10px; right: 50px; }
+	#contract-button-svg    { bottom: 10px; right: 10px; }
+	#select-v-button-svg    { right: 50px; top: 50px; }
+	#select-e-button-svg    { right: 50px; top: 90px; }
+	#select-none-button-svg { right: 50px; top: 10px; }
+	#pin-button-svg         { right: 90px; top: 50px; }
+	#unpin-button-svg       { right: 90px; top: 10px; }
+	#TikZ-button-svg        { left: 10px; bottom: 50px; }
+	#label-button-svg       { bottom: 10px; left: 10px; }
+	#undo-button-svg        { bottom: 10px; right: 60%; }
+	#redo-button-svg        { bottom: 10px; left: 40%; }
+	#no-color-button-svg    { right: 10px; top: 10px; }
+	#red-button-svg         { right: 10px; top: 50px; }
+	#orange-button-svg      { right: 10px; top: 90px; }
+	#yellow-button-svg      { right: 10px; top: 130px; }
+	#green-button-svg       { right: 10px; top: 170px; }
+	#blue-button-svg        { right: 10px; top: 210px; }
+	#violet-button-svg      { right: 10px; top: 250px; }
+}
+
+@media (max-height: 334px) and (min-width: 451px) {
+	#add-v-button-svg       { bottom: 10px; right: 170px; }
+	#add-e-button-svg       { bottom: 10px; right: 130px; }
+	#delete-button-svg      { bottom: 10px; right: 90px; }
+	#contract-button-svg    { bottom: 10px; right: 50px; }
+	#select-v-button-svg    { right: 50px; top: 50px; }
+	#select-e-button-svg    { right: 50px; top: 90px; }
+	#select-none-button-svg { right: 50px; top: 10px; }
+	#pin-button-svg         { right: 90px; top: 50px; }
+	#unpin-button-svg       { right: 90px; top: 10px; }
+	#TikZ-button-svg        { left: 10px; bottom: 50px; }
+	#label-button-svg       { bottom: 10px; left: 10px; }
+	#undo-button-svg        { bottom: 10px; right: 60%; }
+	#redo-button-svg        { bottom: 10px; left: 40%; }
+	#no-color-button-svg    { right: 10px; top: 10px; }
+	#red-button-svg         { right: 10px; top: 50px; }
+	#orange-button-svg      { right: 10px; top: 90px; }
+	#yellow-button-svg      { right: 10px; top: 130px; }
+	#green-button-svg       { right: 10px; top: 170px; }
+	#blue-button-svg        { right: 10px; top: 210px; }
+	#violet-button-svg      { right: 10px; top: 250px; }
+}
+
+/* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
+@media (max-width: 450px) and (min-width: 375px) {
+	#add-v-button-svg       { bottom: 50px; left: 10px; }
+	#add-e-button-svg       { bottom: 50px; left: 50px; }
+	#delete-button-svg      { bottom: 50px; left: 90px; }
+	#contract-button-svg    { bottom: 50px; left: 130px; }
+	#select-v-button-svg    { display: none; }
+	#select-e-button-svg    { display: none; }
+	#select-none-button-svg { display: none; }
+	#pin-button-svg         { display: none; }
+	#unpin-button-svg       { display: none; }
+	#TikZ-button-svg        { display: none; }
+	#label-button-svg       { display: none; }
+	#undo-button-svg        { bottom: 10px; right: 50px; }
+	#redo-button-svg        { bottom: 10px; right: 10px; }
+	#no-color-button-svg    { bottom: 10px; left: 10px; }
+	#red-button-svg         { bottom: 10px; left: 50px; }
+	#orange-button-svg      { bottom: 10px; left: 90px; }
+	#yellow-button-svg      { bottom: 10px; left: 130px; }
+	#green-button-svg       { bottom: 10px; left: 170px; }
+	#blue-button-svg        { bottom: 10px; left: 210px; }
+	#violet-button-svg      { bottom: 10px; left: 250px; }
+}
+
+@media (max-width: 374px) {
+	#add-v-button-svg       { bottom: 50px; left: 10px; }
+	#add-e-button-svg       { bottom: 50px; left: 50px; }
+	#delete-button-svg      { bottom: 50px; left: 90px; }
+	#contract-button-svg    { bottom: 50px; left: 130px; }
+	#select-v-button-svg    { display: none; }
+	#select-e-button-svg    { display: none; }
+	#select-none-button-svg { display: none; }
+	#pin-button-svg         { display: none; }
+	#unpin-button-svg       { display: none; }
+	#TikZ-button-svg        { display: none; }
+	#label-button-svg       { display: none; }
+	#undo-button-svg        { bottom: 50px; left: 210px; }
+	#redo-button-svg        { bottom: 50px; left: 250px; }
+	#no-color-button-svg    { bottom: 10px; left: 10px; }
+	#red-button-svg         { bottom: 10px; left: 50px; }
+	#orange-button-svg      { bottom: 10px; left: 90px; }
+	#yellow-button-svg      { bottom: 10px; left: 130px; }
+	#green-button-svg       { bottom: 10px; left: 170px; }
+	#blue-button-svg        { bottom: 10px; left: 210px; }
+	#violet-button-svg      { bottom: 10px; left: 250px; }
 }
 
 
@@ -300,8 +419,8 @@ var drawingBoard = d3.select("#drawing-board-div")
 
 var addvButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"10px", "bottom":"130px"})
+	.attr("id", "add-v-button-svg")
+	.classed("edit-button",true);
 addvButton.append("rect")
 	.classed("edit-button-rect mode-button", true)
 	.attr("id", "add-v-button")
@@ -317,8 +436,8 @@ addvButton.append("text")
 
 var addeButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"10px", "bottom":"90px"})
+	.attr("id", "add-e-button-svg")
+	.classed("edit-button",true);
 addeButton.append("rect")
 	.classed("edit-button-rect mode-button", true)
 	.attr("id", "add-e-button")
@@ -334,8 +453,8 @@ addeButton.append("text")
 
 var deleteButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"10px", "bottom":"50px"})
+	.attr("id", "delete-button-svg")
+	.classed("edit-button",true);
 deleteButton.append("rect")
 	.classed("edit-button-rect mode-button", true)
 	.attr("id", "delete-button")
@@ -346,8 +465,8 @@ deleteButton.append("path")
 
 var contractButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"10px", "bottom":"10px"})
+	.attr("id", "contract-button-svg")
+	.classed("edit-button",true);
 contractButton.append("rect")
 	.classed("edit-button-rect mode-button", true)
 	.attr("id", "contract-button")
@@ -358,8 +477,8 @@ contractButton.append("path")
 
 var selectAllButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({right:"50px", "top":"50px"});
+	.attr("id", "select-v-button-svg")
+	.classed("edit-button",true);
 selectAllButton
 	.append("defs")
 	.append("svg:clipPath")
@@ -380,8 +499,8 @@ selectAllButton.append("circle")
 
 var selectEdgesButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"50px", "top":"90px"});
+	.attr("id", "select-e-button-svg")
+	.classed("edit-button",true);
 selectEdgesButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", select_edges_button_press);
@@ -396,8 +515,8 @@ selectEdgesButton.append("circle")
 
 var selectNoneButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"50px", "top":"10px"});
+	.attr("id", "select-none-button-svg")
+	.classed("edit-button",true);
 selectNoneButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", select_none);
@@ -412,8 +531,8 @@ selectNoneButton.append("circle")
 
 var pinButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"90px", "top":"50px"});
+	.attr("id", "pin-button-svg")
+	.classed("edit-button",true);
 pinButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", pin_button_press);
@@ -428,8 +547,8 @@ pinButton.append("circle")
 
 var unpinButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style({"right":"90px", "top":"10px"});
+	.attr("id", "unpin-button-svg")
+	.classed("edit-button",true);
 unpinButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", unpin_button_press);
@@ -443,9 +562,8 @@ unpinButton.append("circle")
 
 var TikZButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style("left", "10px")
-	.style("bottom", "50px");
+	.attr("id", "TikZ-button-svg")
+	.classed("edit-button",true);
 TikZButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", generate_TikZ);
@@ -458,9 +576,8 @@ TikZText.append("tspan").text("Z");
 
 var labelButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style("bottom", "10px")
-	.style("left", "10px")
+	.attr("id", "label-button-svg")
+	.classed("edit-button",true);
 labelRect = labelButton.append("rect")
 	.classed("edit-button-rect selected",true)
 	.on("click", function () { 
@@ -472,9 +589,8 @@ labelButton.append("path")
 
 var undoButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style("bottom", "10px")
-	.style("right", "50%")
+	.attr("id", "undo-button-svg")
+	.classed("edit-button",true);
 undoRect = undoButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", undo);
@@ -484,9 +600,8 @@ undoButton.append("path")
 
 var redoButton = d3.select("body")
 	.append("svg")
-	.classed("edit-button",true)
-	.style("bottom", "10px")
-	.style("left", "50%")
+	.attr("id", "redo-button-svg")
+	.classed("edit-button",true);
 redoRect = redoButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", redo);
@@ -498,8 +613,8 @@ redoButton.append("path")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"10px"})
+	.attr("id", "no-color-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "no-color-button")
@@ -508,8 +623,8 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"50px"})
+	.attr("id", "red-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("red",true)
 	.classed("color-button-rect mode-button", true)
@@ -518,8 +633,8 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"90px"})
+	.attr("id", "orange-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("orange",true)
 	.classed("color-button-rect mode-button", true)
@@ -528,8 +643,8 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"130px"})
+	.attr("id", "yellow-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("yellow",true)
 	.classed("color-button-rect mode-button", true)
@@ -538,8 +653,8 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"170px"})
+	.attr("id", "green-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("green",true)
 	.classed("color-button-rect mode-button", true)
@@ -548,8 +663,8 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"210px"})
+	.attr("id", "blue-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("blue",true)
 	.classed("color-button-rect mode-button", true)
@@ -558,15 +673,15 @@ d3.select("body")
 
 d3.select("body")
 	.append("svg")
-	.classed("color-button",true)
-	.style({"right":"10px", "top":"250px"})
+	.attr("id", "violet-button-svg")
+	.classed("color-button-svg",true)
 	.append("rect")
 	.classed("violet",true)
 	.classed("color-button-rect mode-button", true)
 	.attr("id", "violet-button")
 	.on("click", function () {color_button_press("violet");});
 
-d3.selectAll(".color-button")
+d3.selectAll(".color-button-svg")
 	.attr("viewBox", "-20 -20 40 40 ")
 	.attr("width", "35")
 	.attr("height", "35");
@@ -654,7 +769,6 @@ function drag_pin_drag_start(d)
 	
 	
 	//document.getElementById("graph-input").value = document.getElementById("graph-input").value+d3.event.sourceEvent.type;
-	console.log(d3.event);
 	d3.event.sourceEvent.preventDefault();
 	
 	timeoutID = setTimeout(function ()
@@ -814,8 +928,7 @@ function curve_edge_drag_start(d)
 	target_pinned = d.target.fixed;
 	d.target.fixed = 1;
 	
-	x0 = d3.event.sourceEvent.x;
-	y0 = d3.event.sourceEvent.y;
+	x0 = y0 = null;
 	
 	var edge = d3.select(this);
 	selecting = d3.event.sourceEvent.shiftKey;
@@ -835,6 +948,12 @@ function curve_edge_drag(d)
 {
 	d.controlx = d3.event.x;
 	d.controly = d3.event.y;
+	if (x0 == null || y0 == null)
+	{
+		x0 = d3.event.x;
+		y0 = d3.event.y;
+	}
+	
 	var edge = d3.select(this);
 	edge
 		.attr("d", get_edge_path)
