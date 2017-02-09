@@ -1,8 +1,12 @@
 <!DOCTYPE html>
 <html>
-<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
 <title>Sticky Graph</title>
 <style>
+
+@-ms-viewport{
+  width: device-width;
+}
 
 #drawing-board-div {
 	position:fixed;
@@ -196,6 +200,7 @@
 	-ms-user-select: none;       /* IE/Edge */
 	user-select: none;           /* non-prefixed version */
 }
+
 
 
 </style>
@@ -622,60 +627,92 @@ var drag = force.drag()
 	.on("dragstart", drag_pin_drag_start)
 	.on("drag", drag_pin_drag)
 	.on("dragend", drag_pin_end);
-var shiftAtStart;
+var selecting;
 var pinnedAtStart;
 var selectedAtStart;
-var colorAtStart;
 var x0, y0;
 var nodeMoved;
+var timeoutID;
 
 function drag_pin_drag_start(d)
 {
+	clearKeyMode();
 	var v = d3.select(this);
-	shiftAtStart = d3.event.sourceEvent.shiftKey;
+	selecting = d3.event.sourceEvent.shiftKey;
 	pinnedAtStart = v.classed("pinned");
 	selectedAtStart = v.classed("selected");
-	colorAtStart = d.color;
 	x0 = d.x;
 	y0 = d.y;
 	nodeMoved = false;
 	
-	v.each(do_mouse_down);
+	//v.each(do_mouse_down);
+	if (selecting)
+		v.classed("selected", !selectedAtStart);
 	
-	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
-	if (pinNode)
-		v.each(pin);
-	else
-		v.each(unpin);
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || xor(pinnedAtStart, (mode == DRAGPIN && !selecting)));
+	v.classed("pinned", pinNode);
+	
+	
+	//document.getElementById("graph-input").value = document.getElementById("graph-input").value+d3.event.sourceEvent.type;
+	console.log(d3.event);
+	d3.event.sourceEvent.preventDefault();
+	
+	timeoutID = setTimeout(function ()
+		{
+			v.classed("selected", !selectedAtStart);
+			selecting = true;
+		}, 750);
 }
 
 function drag_pin_drag(d)
 {
 	var v = d3.select(this);
-	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
-	if (pinNode)
-		v.each(pin);
-	else
-		v.each(unpin);
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || xor(pinnedAtStart, (mode == DRAGPIN && !selecting)));
+	v.classed("pinned", pinNode);
 	
 	if (dist(d.x,d.y,x0,y0)>5 && !nodeMoved)
 	{
 		straighten_nbr_edges(d);
 		v.classed("selected", selectedAtStart);
-		v.classed("red orange yellow green blue violet", false)
-		 .classed(colorAtStart, true);
-		d.color = colorAtStart;
 		nodeMoved = true;
+		clearTimeout(timeoutID);
 	}
+	d3.event.sourceEvent.preventDefault();
 }
 
 function drag_pin_end(d)
 {
-	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || pinnedAtStart || (mode == DRAGPIN && !shiftAtStart));
+	clearTimeout(timeoutID);
+	v = d3.select(this);
+	if (!nodeMoved && !selecting)
+	{
+		switch (mode)
+		{
+		case COLOR:
+			var hadColor = v.classed(colorMode);
+			v.classed("selected red orange yellow green blue violet", false)
+				.each(function(d,i) {d.color=""});
+			if (!hadColor)
+				v.classed(colorMode, true)
+					.each(function(d,i) {d.color=colorMode});
+			break;
+		case DELETE:
+			save_state();
+			delete_vertex(d);
+			update_graph();
+			write_graph();
+			force.start();
+			break;
+		}
+	}
+	
+	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || xor(pinnedAtStart, (mode == DRAGPIN && !selecting)));
 	if (pinNode)
 		d3.select(this).each(pin);
 	else
 		d3.select(this).each(unpin);
+	
+	d3.event.sourceEvent.preventDefault();
 }
 
 var noDrag = d3.behavior.drag();
@@ -686,15 +723,18 @@ var addEdgeDrag = d3.behavior.drag()
 	.on("dragend", new_edge_drag_end);
 
 var dragLink, newEdgeX, newEdgeY;
-
+var makingNewEdge = false;
 function new_edge_drag_start(d)
 {
+	d.fixed |= 2;
 	newEdgeX = d.x, newEdgeY = d.y;
+	makingNewEdge = true;
 	dragLink = drawingBoard.select("#links")
 		.append("path")
 		.classed("link", true)
 		.attr("d", "M "+d.x+" "+d.y+" L "+d.x+" "+d.y)
 		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()) + " 11";});
+	d3.event.sourceEvent.preventDefault();
 }
 
 function new_edge_drag(d)
@@ -707,10 +747,13 @@ function new_edge_drag(d)
 		dragLink.classed("selected", true);
 	else
 		dragLink.classed("selected", false);
+	d3.event.sourceEvent.preventDefault();
 }
 
 function new_edge_drag_end(d1)
 {
+	d1.fixed &= 1;
+	makingNewEdge = false;
 	v2 = drawingBoard.selectAll(".node").filter(function (d2) {
 		return dist(d2.x,d2.y, newEdgeX, newEdgeY) <= 10; })
 	dragLink.remove();
@@ -734,6 +777,7 @@ function new_edge_drag_end(d1)
 			force.start();
 		}
 	}
+	d3.event.sourceEvent.preventDefault();
 }
 
 var curveEdgeDrag = d3.behavior.drag()
@@ -761,7 +805,7 @@ function straighten_nbr_edges(d)
 		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 }
 
-var source_pinned, target_pinned;
+var source_pinned, target_pinned, edgeMoved;
 
 function curve_edge_drag_start(d)
 {
@@ -769,25 +813,45 @@ function curve_edge_drag_start(d)
 	d.source.fixed = 1;
 	target_pinned = d.target.fixed;
 	d.target.fixed = 1;
-	d3.select(this).each(do_mouse_down);
+	
+	x0 = d3.event.sourceEvent.x;
+	y0 = d3.event.sourceEvent.y;
+	
+	var edge = d3.select(this);
+	selecting = d3.event.sourceEvent.shiftKey;
+	selectedAtStart = edge.classed("selected");
+	edgeMoved = false;
+	if (selecting)
+		edge.classed("selected", !selectedAtStart);
+	timeoutID = setTimeout(function ()
+		{
+			edge.classed("selected", !selectedAtStart);
+			selecting = true;
+		}, 750);
+	d3.event.sourceEvent.preventDefault();
 }
 
 function curve_edge_drag(d)
 {
 	d.controlx = d3.event.x;
 	d.controly = d3.event.y;
-	d3.select(this)
+	var edge = d3.select(this);
+	edge
 		.attr("d", get_edge_path)
-		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});;
-	
-// 	if (d3.event.sourceEvent.shiftKey)
-// 		dragLink.classed("selected", true);
-// 	else
-// 		dragLink.classed("selected", false);
+		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
+	if (dist(d3.event.x,d3.event.y,x0,y0)>5 && !edgeMoved)
+	{
+		edge.classed("selected", selectedAtStart);
+		edgeMoved = true;
+		clearTimeout(timeoutID);
+	}
+	d3.event.sourceEvent.preventDefault();
 }
 
 function curve_edge_drag_end(d)
 {
+	clearTimeout(timeoutID);
+	var edge = d3.select(this);
 	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
 	{
 		d3.select("#v"+d.source.id).each(pin);
@@ -799,8 +863,39 @@ function curve_edge_drag_end(d)
 		delete d.controly;
 		d.source.fixed = source_pinned;
 		d.target.fixed = target_pinned;
-		d3.select(this).attr("d", get_edge_path);
+		edge.attr("d", get_edge_path);
 	}
+	
+	if (!edgeMoved)
+	{
+		switch (mode)
+		{
+		case COLOR:
+			var hadColor = edge.classed(colorMode);
+			edge.classed("selected red orange yellow green blue violet", false)
+				.each(function(d,i) {d.color=""});
+			if (!hadColor)
+				edge.classed(colorMode, true)
+					.each(function(d,i) {d.color=colorMode});
+			break;
+		case DELETE:
+			save_state();
+			delete_edge(d);
+			update_graph();
+			write_graph();
+			force.start();
+			break;
+		case CONTRACT:
+			save_state();
+			contract_edge(d);
+			update_graph();
+			write_graph();
+			force.start();
+			break;
+		}
+	}
+	
+	d3.event.sourceEvent.preventDefault();
 }
 
 
@@ -816,6 +911,7 @@ function swap_labels_drag_start(d)
 	force.stop();
 	swapLabelsX = d.x, swapLabelsY = d.y;
 	clearKeyMode();
+	d3.event.sourceEvent.preventDefault();
 }
 
 function swap_labels_drag(d)
@@ -823,6 +919,7 @@ function swap_labels_drag(d)
 	swapLabelsX = d3.event.x, swapLabelsY = d3.event.y;
 	d3.select(this)
 		.attr({x:swapLabelsX, y:swapLabelsY});
+	d3.event.sourceEvent.preventDefault();
 }
 
 function swap_labels_drag_end(d1)
@@ -840,6 +937,7 @@ function swap_labels_drag_end(d1)
 	{
 		d3.select(this).attr({x:d1.x, y:d1.y});
 	}
+	d3.event.sourceEvent.preventDefault();
 }
 
 var keyMode = null;
@@ -870,7 +968,7 @@ function keydown_handler()
 {
 	var e = d3.event;
 	var activeID = document.activeElement.id;
-	if (activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input")
+	if (activeID == "matrix-area" || activeID == "graph-mode-input" || activeID == "graph-input" || makingNewEdge)
 	{
 		clearKeyMode();
 		return;
@@ -1001,7 +1099,7 @@ function unpin(d)
 		straighten_nbr_edges(d);
 		force.resume();
 	}
-	d.fixed &= 2;
+	d.fixed &= 6;
 	d3.select(this).classed("pinned", false);
 }
 
@@ -1046,47 +1144,20 @@ function add_event_listeners()
 {
 	switch (mode)
 	{
-		case DRAGPIN:
-			link.on("click", null)
-				.call(curveEdgeDrag);
-			node.on("dblclick", unpin)
-				.on("click", null)
-				.call(drag);
+	case DRAGPIN:
+	case CONTRACT:
+	case DELETE:
+	case COLOR:
+		link.call(curveEdgeDrag);
+		node.call(drag);
 		break;
-		case ADDEDGE:
-			link.on("click", null)
-				.call(curveEdgeDrag);
-			node.on("click", do_mouse_down)
-				.on("dblclick", null)
-				.call(addEdgeDrag);
-			break;
-		case ADDVERTEX:
-			console.error("unsupported feature: interactive add vertex");
-			break;
-		case CONTRACT:
-			link.on("click", function (d) {
-					save_state(); contract_edge(d); update_graph(); write_graph(); force.start(); })
-				.call(noDrag);
-			node.on("dblclick", unpin)
-				.on("click", null)
-				.call(drag);
-			break;
-		case DELETE:
-			link.on("click", function (d) {
-					save_state(); delete_edge(d); update_graph(); write_graph(); force.start(); })
-				.call(noDrag);
-			node.on("dblclick", null)
-				.on("click", function (d) {
-					save_state(); delete_vertex(d); update_graph(); write_graph(); force.start(); })
-				.call(noDrag);
-			break;
-		case COLOR:
-			link.on("click", null)
-				.call(curveEdgeDrag);
-			node.on("dblclick", unpin)
-				.on("click", null)
-				.call(drag);
-			break;
+	case ADDEDGE:
+		link.call(curveEdgeDrag);
+		node.call(addEdgeDrag);
+		break;
+	case ADDVERTEX:
+		console.error("unsupported feature: interactive add vertex");
+		break;
 	}
 	label.call(swapLabelsDrag);
 }
@@ -1354,20 +1425,13 @@ function delete_button_press()
 	var selectedNodes = drawingBoard.selectAll(".node.selected");
 	
 	if (!selectedLinks.empty() || !selectedNodes.empty())
+	{
 		save_state();
-	
-	if (!selectedLinks.empty())
-	{
-		
-		selectedLinks.each(delete_edge);
 		changes = true;
 	}
 	
-	if (!selectedNodes.empty())
-	{
-		selectedNodes.each(delete_vertex);
-		changes = true;
-	}
+	selectedLinks.each(delete_edge);
+	selectedNodes.each(delete_vertex);
 	
 	if (changes)
 	{
