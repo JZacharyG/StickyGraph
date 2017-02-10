@@ -20,15 +20,15 @@ So, you have a graph that you'd like to draw.  Cool!  Direct your attention to t
 
 #### Drawing and Pinning
 
-StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always double click a vertex later if you want to unpin it.
+StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always click it again later to unpin it.
 
-If you hold the `alt` key while moving a vertex, it won't pin, which can be useful sometimes.  (More accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also two buttons up at the top that look like a pinned and an unpinned vertex respectively.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
+If you hold the `alt` key while moving a vertex, then it won't pin.  (Well, more accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also two buttons up at the top that look like a pinned and an unpinned vertex respectively.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
 
 Want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
 
 #### Selecting and Coloring
 
-If you hold `shift` while clicking vertex or edge, you will select that feature.  You can then do useful things with that selection, like assigning them a color (by clicking on the appropriate color in the top right), or removing whatever colors they may presently be assigned (by clicking that black button).  If you hold `shift` while clicking a color button, it will instead select all vertices and edges that are currently assigned that color.  If you click a color button without anything selected, you will enter an "interactive" mode, in which you can paint colors on vertices or edges just by clicking them. 
+If you hold `shift` while clicking vertex or edge (or just press and hold), you will select that feature.  You can then do useful things with that selection, like assigning them a color (by clicking on the appropriate color in the top right), or removing whatever colors they may presently be assigned (by clicking that black button).  If you hold `shift` while clicking a color button, it will instead select all vertices and edges that are currently assigned that color.  If you click a color button without anything selected, you will enter an "interactive" mode, in which you can paint colors on vertices or edges just by clicking them.
 
 Also, there are some buttons to select all edges, all vertices, or de-select everything.
 
@@ -41,7 +41,7 @@ Way down in the bottom left corner, there are buttons to add vertices, add edges
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
 - The **contract button** does a couple of slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't do anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
-If you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever else accordingly, so it is always easy to pull your graph back into the rest of the world.
+And again, if you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever else, so it is always easy to pull your graph back out into the rest of the world.
 
 Don't like the changes you've made?  StickyGraph has you covered with some **undo** and **redo** buttons down at the bottom.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
@@ -71,7 +71,7 @@ Most buttons in StickyGraph have an equivalent key that you can press, however m
   - contract mode: `/`
   - swap two labels: hit `s`, type the first endpoint, `space`, the second endpoint, then hit `enter`
   - undo: `z`
-  - redo: `y` or `shift`+`y`
+  - redo:  `shift`+`z`
 - Colors
   - red: `r`
   - orange: `o`

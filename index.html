@@ -713,7 +713,9 @@ d3.select("body").append("div").attr("id", "TikZ-div").style("display", "none").
 
 var overlay = drawingBoard.append("rect")
 	.attr("class", "overlay")
-	.call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler));
+	.call(zoom.scaleExtent([.1, 8]).on("zoom", zoomHandler))
+	.on("gesturechange", function () { d3.event.preventDefault(); })
+	.on("gesturestart", function () { d3.event.preventDefault(); });
 
 resize();
 d3.select(window).on("resize", resize);
@@ -769,15 +771,9 @@ function drag_pin_drag_start(d)
 	y0 = d.y;
 	nodeMoved = false;
 	
-	//v.each(do_mouse_down);
 	if (selecting)
 		v.classed("selected", !selectedAtStart);
 	
-	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || xor(pinnedAtStart, (mode == DRAGPIN && !selecting)));
-	v.classed("pinned", pinNode);
-	
-	
-	//document.getElementById("graph-input").value = document.getElementById("graph-input").value+d3.event.sourceEvent.type;
 	d3.event.sourceEvent.preventDefault();
 	
 	timeoutID = setTimeout(function ()
@@ -789,14 +785,12 @@ function drag_pin_drag_start(d)
 
 function drag_pin_drag(d)
 {
-	var v = d3.select(this);
-	pinNode = xor(d3.event.sourceEvent.altKey, nodeMoved || xor(pinnedAtStart, (mode == DRAGPIN && !selecting)));
-	v.classed("pinned", pinNode);
-	
-	if (dist(d.x,d.y,x0,y0)>5 && !nodeMoved)
+	if (!nodeMoved && dist(d.x,d.y,x0,y0)>5)
 	{
 		straighten_nbr_edges(d);
-		v.classed("selected", selectedAtStart);
+		d3.select(this)
+			.classed("selected", selectedAtStart)
+			.classed("pinned", false);
 		nodeMoved = true;
 		clearTimeout(timeoutID);
 	}
@@ -928,13 +922,13 @@ function straighten_nbr_edges(d)
 	adj.selectAll(".link").style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 }
 
-var source_pinned, target_pinned, edgeMoved;
+var sourcePinned, targetPinned, edgeMoved;
 
 function curve_edge_drag_start(d)
 {
-	source_pinned = d.source.fixed;
+	sourcePinned = d.source.fixed;
 	d.source.fixed = 1;
-	target_pinned = d.target.fixed;
+	targetPinned = d.target.fixed;
 	d.target.fixed = 1;
 	
 	x0 = y0 = null;
@@ -992,8 +986,8 @@ function curve_edge_drag_end(d)
 	{
 		delete d.controlx;
 		delete d.controly;
-		d.source.fixed = source_pinned;
-		d.target.fixed = target_pinned;
+		d.source.fixed = sourcePinned;
+		d.target.fixed = targetPinned;
 		edgeParent.selectAll("path")
 			.attr("d", get_edge_path);
 		edge.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
