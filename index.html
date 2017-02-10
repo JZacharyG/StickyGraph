@@ -38,7 +38,16 @@
 	stroke-width: 3px;
 	stroke-dashoffset:-11px;
 	stroke-linecap: round;
+	pointer-events: none;
 }
+
+.link-background {
+	fill:none;
+	stroke: #999;
+	stroke-width: 16px;
+	opacity:0;
+}
+
 
 .node.red, .node.red.selected, .color-button-rect.red { fill: #f00; }
 .link.red, .node.red { stroke: #f00; }
@@ -724,7 +733,7 @@ zoomable.append("g").attr("id", "nodes");
 zoomable.append("g").attr("id", "labels");
 
 var node = drawingBoard.select("#nodes").selectAll(".node"),
-	link = drawingBoard.select("#links").selectAll(".link"),
+	link = drawingBoard.select("#links").selectAll(".link-parent"),
 	label = drawingBoard.select("#labels").selectAll(".label");
 
 function zoomHandler()
@@ -912,11 +921,11 @@ function get_edge_path(d)
 
 function straighten_nbr_edges(d)
 {
-	drawingBoard.selectAll(".link")
+	var adj = link.selectAll("path")
 		.filter(function (l) { return l.source.id == d.id || l.target.id == d.id; })
-		.each(function (l) {delete l.controlx; delete l.controly;})
-		.attr("d", get_edge_path)
-		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
+		.each(function (l) {delete l.controlx; delete l.controly;});
+	adj.selectAll("path").attr("d", get_edge_path)
+	adj.selectAll(".link").style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 }
 
 var source_pinned, target_pinned, edgeMoved;
@@ -930,7 +939,7 @@ function curve_edge_drag_start(d)
 	
 	x0 = y0 = null;
 	
-	var edge = d3.select(this);
+	var edge = d3.select(this.parentNode).select(".link");
 	selecting = d3.event.sourceEvent.shiftKey;
 	selectedAtStart = edge.classed("selected");
 	edgeMoved = false;
@@ -948,19 +957,21 @@ function curve_edge_drag(d)
 {
 	d.controlx = d3.event.x;
 	d.controly = d3.event.y;
+	
 	if (x0 == null || y0 == null)
 	{
 		x0 = d3.event.x;
 		y0 = d3.event.y;
 	}
 	
-	var edge = d3.select(this);
-	edge
-		.attr("d", get_edge_path)
+	var edgeParent = d3.select(this.parentNode);
+	edgeParent.selectAll("path")
+		.attr("d", get_edge_path);
+	edgeParent.select(".link")
 		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	if (dist(d3.event.x,d3.event.y,x0,y0)>5 && !edgeMoved)
 	{
-		edge.classed("selected", selectedAtStart);
+		edgeParent.select(".link").classed("selected", selectedAtStart);
 		edgeMoved = true;
 		clearTimeout(timeoutID);
 	}
@@ -970,7 +981,8 @@ function curve_edge_drag(d)
 function curve_edge_drag_end(d)
 {
 	clearTimeout(timeoutID);
-	var edge = d3.select(this);
+	var edgeParent = d3.select(this.parentNode),
+		edge = edgeParent.select(".link");
 	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
 	{
 		d3.select("#v"+d.source.id).each(pin);
@@ -982,10 +994,12 @@ function curve_edge_drag_end(d)
 		delete d.controly;
 		d.source.fixed = source_pinned;
 		d.target.fixed = target_pinned;
-		edge.attr("d", get_edge_path);
+		edgeParent.selectAll("path")
+			.attr("d", get_edge_path);
+		edge.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	}
 	
-	if (!edgeMoved)
+	if (!edgeMoved && !selecting)
 	{
 		switch (mode)
 		{
@@ -1112,9 +1126,11 @@ function keydown_handler()
 		switch (e.keyCode)
 		{
 		case 90:  // z: undo
-			if (!e.shiftKey) { undo(); break; } // shift-z should fall through to redo
-		case 89:  // y: redo
-			redo(); break;
+			if (e.shiftKey)
+				redo();
+			else
+				undo(); // shift-z redoes
+			break;
 		case 68:  // d: switch to drag/pin mode
 			change_mode(DRAGPIN, ""); break;
 		case 187: // =: add vertex
@@ -1267,11 +1283,11 @@ function add_event_listeners()
 	case CONTRACT:
 	case DELETE:
 	case COLOR:
-		link.call(curveEdgeDrag);
+		link.selectAll(".link-background").call(curveEdgeDrag);
 		node.call(drag);
 		break;
 	case ADDEDGE:
-		link.call(curveEdgeDrag);
+		link.selectAll(".link-background").call(curveEdgeDrag);
 		node.call(addEdgeDrag);
 		break;
 	case ADDVERTEX:
@@ -1318,7 +1334,7 @@ function select_edges_button_press()
 	if (selected.size() == links.length)
 		selected.classed("selected", false);
 	else
-		link.classed("selected", true);
+		drawingBoard.selectAll(".link").classed("selected", true);
 }
 
 function select_none() { clearKeyMode(); drawingBoard.selectAll(".selected").classed("selected", false); }
@@ -1808,10 +1824,13 @@ function update_graph()
 	node.exit().remove();
 	
 	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
-	link.enter()
-		.append("path")
-		.attr("class", "link")
-		.each(function(d) {d3.select(this).classed(d.color, true);})
+	var newLinkParents = link.enter()
+		.append("g").classed("link-parent", true);
+	newLinkParents.append("path")
+		.classed("link-background", true);
+	newLinkParents.append("path")
+		.classed("link", true)
+		.each(function(d) {d3.select(this).classed(d.color, true);});
 	link.exit().remove();
 	
 	label = label.data(force.nodes(), function(d) { return d.id;});
@@ -1831,8 +1850,8 @@ function tick()
 	node.attr("cx", function(d) { return d.x; })
 		.attr("cy", function(d) { return d.y; });
 	
-	link.attr("d", get_edge_path)
-		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
+	link.selectAll("path").attr("d", get_edge_path);
+	link.selectAll(".link").style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	
 	label.attr("x", function(d) { return d.x; })
 		.attr("y", function(d) { return d.y; })
