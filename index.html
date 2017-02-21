@@ -364,7 +364,7 @@ var color = d3.scale.category10(); // FIX ME? do we ever use this?
 
 var nodes = [],
 	links = [];
-var nextID = 0; // when we edit the graph, maybe it would help to have a nice, unique id to go along with it? maybe we don't need ids at all, though?
+var nextIDv = 0, nextIDe = 0; // when we edit the graph, maybe it would help to have a nice, unique id to go along with it? maybe we don't need ids at all, though?
 
 var undoStack = [],
 	redoStack = [];
@@ -704,7 +704,7 @@ function drag_pin_drag(d)
 {
 	if (!nodeMoved && dist(d.x,d.y,x0,y0)>5)
 	{
-		straighten_nbr_edges(d);
+		float_nbr_edges(d);
 		d3.select(this)
 			.classed("selected", selectedAtStart)
 			.classed("pinned", false);
@@ -794,18 +794,15 @@ function new_edge_drag_end(d1)
 	if (!v2.empty())
 	{
 		d2 = v2.datum();
-		if (d2.id != d1.id) // and if the edge isn't already there
+		if (d2.id != d1.id)
 		{
-			for (var i = 0; i < links.length; i++)
-				if (links[i].source.id == d1.id && links[i].target.id == d2.id ||
-					links[i].source.id == d2.id && links[i].target.id == d1.id)
-					return;
 			save_state();
-			links.push({source:d1, target:d2, color:""});
+			var newe = new_edge(d1, d2);
+			
 			update_graph();
 			if (d3.event.sourceEvent.shiftKey)
 				drawingBoard.selectAll(".link")
-					.filter(function (d) { return d.source.id == d1.id && d.target.id == d2.id; })
+					.filter(function (d) { return d == newe; })
 					.classed("selected", true);
 			write_graph();
 			force.start();
@@ -822,19 +819,30 @@ var dragLink; // replace this with an edge with a known id, so that we don't nee
 
 function get_edge_path(d)
 {
+	var x1,x2,y1,y2;
+	if (d.source.id < d.target.id)
+		x1 = d.source.x, x2 = d.target.x, y1 = d.source.y, y2 = d.target.y;
+	else
+		x1 = d.target.x, x2 = d.source.x, y1 = d.target.y, y2 = d.source.y;
 	var coords;
 	if ("controlx" in d)
 		coords = ["M", d.source.x, d.source.y, "Q", d.controlx, d.controly, d.target.x, d.target.y];
 	else
-		coords = ["M", d.source.x, d.source.y, "L", d.target.x, d.target.y];
+	{
+		var offset = d.copy - d.copies/2.,
+			scale  = .1*offset;
+		var controls = {x: (x1+x2)/2. + scale*(y1-y2), y: (y1+y2)/2.-scale*(x1-x2)};
+		coords = ["M", x1, y1, "Q", controls.x, controls.y, x2, y2];
+		//coords = ["M", d.source.x, d.source.y, "L", d.target.x, d.target.y];
+	}
 	return coords.join(" ");
 }
 
-function straighten_nbr_edges(d)
+function float_nbr_edges(d)
 {
 	var adj = link.selectAll("path")
 		.filter(function (l) { return l.source.id == d.id || l.target.id == d.id; })
-		.each(function (l) {delete l.controlx; delete l.controly;});
+		.each(float_edge);
 	adj.selectAll("path").attr("d", get_edge_path)
 	adj.selectAll(".link").style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 }
@@ -866,9 +874,6 @@ function curve_edge_drag_start(d)
 
 function curve_edge_drag(d)
 {
-	d.controlx = d3.event.x;
-	d.controly = d3.event.y;
-	
 	if (x0 == null || y0 == null)
 	{
 		x0 = d3.event.x;
@@ -876,15 +881,22 @@ function curve_edge_drag(d)
 	}
 	
 	var edgeParent = d3.select(this.parentNode);
-	edgeParent.selectAll("path")
-		.attr("d", get_edge_path);
-	edgeParent.select(".link")
-		.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	if (dist(d3.event.x,d3.event.y,x0,y0)>5 && !edgeMoved)
 	{
-		edgeParent.select(".link").classed("selected", selectedAtStart);
-		edgeMoved = true;
 		clearTimeout(timeoutID);
+		edgeParent.select(".link").classed("selected", selectedAtStart);
+		unfloat_edge(d);
+		edgeMoved = true;
+	}
+	if (edgeMoved)
+	{
+		d.controlx = d3.event.x;
+		d.controly = d3.event.y;
+		
+		edgeParent.selectAll("path")
+			.attr("d", get_edge_path);
+		edgeParent.select(".link")
+			.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
 	}
 	d3.event.sourceEvent.preventDefault();
 }
@@ -894,23 +906,20 @@ function curve_edge_drag_end(d)
 	clearTimeout(timeoutID);
 	var edgeParent = d3.select(this.parentNode),
 		edge = edgeParent.select(".link");
-	if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
+	if (edgeMoved)
 	{
-		d3.select("#v"+d.source.id).each(pin);
-		d3.select("#v"+d.target.id).each(pin);
+		if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
+		{
+			d3.select("#v"+d.source.id).each(pin);
+			d3.select("#v"+d.target.id).each(pin);
+		}
+		else
+		{
+			float_edge(d);
+		}
+		tick();
 	}
-	else
-	{
-		delete d.controlx;
-		delete d.controly;
-		d.source.fixed = sourcePinned;
-		d.target.fixed = targetPinned;
-		edgeParent.selectAll("path")
-			.attr("d", get_edge_path);
-		edge.style("stroke-dasharray", function (d) {return "" + (this.getTotalLength()-22) + " 11";});
-	}
-	
-	if (!edgeMoved && !selecting)
+	else if (!selecting)
 	{
 		switch (mode)
 		{
@@ -1121,19 +1130,11 @@ function keydown_handler()
 				var v0 = vInput[0], v1 = vInput[1];
 				if (vIndex == 1 && v0 != null && v1 != null && v0 >= 0 && v0 < nodes.length && v1 >= 0 && v1 < nodes.length)
 				{
-					var edgeExists = false;
-					for (var l of links)
-						if (l.source.index == v0 && l.target.index == v1 ||
-						l.source.index == v1 && l.target.index == v0)
-							edgeExists = true;
-					if (!edgeExists)
-					{
-						save_state();
-						links.push({source:nodes[vInput[0]], target:nodes[vInput[1]], color:""});
-						update_graph();
-						write_graph();
-						force.start();
-					}
+					save_state();
+					new_edge(nodes[vInput[0]], nodes[vInput[1]]);
+					update_graph();
+					write_graph();
+					force.start();
 				}
 			}
 			clearKeyMode();
@@ -1146,7 +1147,7 @@ function unpin(d)
 {
 	if (d.fixed & 1)
 	{
-		straighten_nbr_edges(d);
+		float_nbr_edges(d);
 		force.resume();
 	}
 	d.fixed &= 6;
@@ -1269,10 +1270,53 @@ function swap_labels(l1, l2)
 
 function new_vertex()
 {
-	var newv = {id:nextID, index:nodes.length, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
+	var newv = {id:nextIDv++, index:nodes.length, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
 	nodes.push(newv);
-	nextID++;
 	return newv;
+}
+
+function new_edge(v1, v2)
+{
+	
+	var newe = {source:v1, target:v2, color:"", copy:0, copies:0, controlx:null, id:nextIDe++};
+	links.push(newe);
+	float_edge(newe);
+	return newe;
+}
+
+function float_edge(d)
+{
+	if ("controlx" in d)
+	{
+		var v1 = d.source, v2 = d.target;
+		var othercopies = [];
+		for (l of links) // if (l != d)
+			if (((l.source == v1 && l.target == v2) || (l.source == v2 && l.target == v1)) && !("controlx" in l))
+				othercopies.push(l);
+	
+		var numcopies = othercopies.length; // the number of other (floating) copies of this edge
+
+		for (l of othercopies)
+			l.copies = numcopies;
+		d.copies = d.copy = numcopies;
+		delete d.controlx; delete d.controly;
+	}
+}
+
+function unfloat_edge(d)
+{
+	if (!("controlx" in d)) // if it was floating
+	{
+		for (l of links) if (l != d)
+		{
+			if ((l.source.id == d.source.id && l.target.id == d.target.id || l.source.id == d.target.id && l.target.id == d.source.id) && !("controlx" in l))
+			{
+				l.copies--;
+				if (l.copy > d.copy)
+					l.copy--;
+			}
+		}
+	}
 }
 
 function delete_vertex(d)
@@ -1298,14 +1342,13 @@ function delete_vertex(d)
 
 function delete_edge(d)
 {
-	for (var i=0; i < links.length; i++)
+	var i = links.indexOf(d)
+	if (i != -1)
 	{
-		if (links[i].source.id == d.source.id && links[i].target.id == d.target.id)
-		{
-			links[i] = links[links.length-1];
-			links.length--;
-			return;
-		}
+		unfloat_edge(d);
+		links[i] = links[links.length-1];
+		links.length--;
+		return;
 	}
 }
 
@@ -1399,7 +1442,7 @@ function split_edge(d)
 	}
 	if (d.source.fixed && d.target.fixed)
 		newv.fixed = 1;
-	links.push({source:newv, target:d.source, color:d.color}); // leave it to update_graph to assign the color's class, pinned-ness
+	new_edge(newv, d.source).color = d.color; // leave it to update_graph to assign the color's class, pinned-ness
 	d.source = newv;
 }
 
@@ -1422,7 +1465,7 @@ function add_vertex_button_press()
 	if (!selected.empty() || !edges_selected)
 	{
 		var newv = new_vertex();
-		selected.each(function (d,i) { links.push({source:newv, target: d, color:""}); });
+		selected.each(function (d,i) { new_edge(newv, d); });
 		update_graph();
 		if (d3.event.shiftKey)
 			drawingBoard.select("#v"+newv.id)
@@ -1590,7 +1633,7 @@ function contract_button_press()
 			if (toContract[i]) // we won't delete a vertex before newv, and we don't
 				delete_vertex(nodes[i]); // look at toContract or adj past where we
 			else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
-				links.push({source:nodes[i], target:nodes[newv], color:""}); // anything.
+				new_edge(nodes[i], nodes[newv]); // anything.
 		}
 	
 		update_graph();
@@ -1738,7 +1781,7 @@ function update_graph()
 		.classed("pinned", function(d) {return d.fixed;});
 	node.exit().remove();
 	
-	link = link.data(force.links(), function(d) { return d.source.id + "-" + d.target.id; });
+	link = link.data(force.links(), function(d) { return d.id; });
 	var newLinkParents = link.enter()
 		.append("g").classed("link-parent", true);
 	newLinkParents.append("path")
@@ -1940,12 +1983,12 @@ function load_adjmatrix()
 	force.stop();
 	for (var i=nodes.length; i<n; i++)
 		nodes.push({id:i, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
-	nextID = nodes.length = n;
+	nextIDv = nodes.length = n;
 	links.length = 0;
 	for (var i=0; i<n; i++)
 		for (var j=0; j<i; j++)
 			if (am[i][j] == "1")
-				links.push({source:nodes[i], target:nodes[j], color:""});
+				new_edge(nodes[i], nodes[j]);
 	update_graph();
 	document.getElementById("matrix-area")
 		.value = pre+am.map(function (a) {return a.join(interEntry);}).join(interRow)+post;
@@ -2062,7 +2105,7 @@ function togglematrix_onchange(d)
 	if (edge.length == 0 && checked)
 	{
 		save_state()
-		links.push({source:nodes[d[0]], target:nodes[d[1]], color:""});
+		new_edge(nodes[d[0]], nodes[d[1]]);
 	}
 	else if (edge.length!=0 && !checked)
 	{
@@ -2125,9 +2168,9 @@ function load_g6()
 	
 	var nv = g6string.charCodeAt(g6i) - 63;
 
-	for (nextID=0; nextID<nv; nextID++)
+	for (nextIDv=0; nextIDv<nv; nextIDv++)
 	{
-		nodes[nextID]={id:nextID, index:nextID, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
+		nodes[nextIDv]={id:nextIDv, index:nextIDv, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0};
 	}
 	g6i++;
 	
@@ -2156,7 +2199,7 @@ function load_g6()
 			}
 			if ((x >> 5) & 1)
 			{
-				links.push({source:nodes[i], target:nodes[j], color:""});
+				new_edge(nodes[i], nodes[j]);
 			}
 			x <<= 1;
 		}
@@ -2173,12 +2216,12 @@ function get_state()
 	for (var l of links)
 	{
 		if ("controlx" in l)
-			linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color, controlx:l.controlx, controly:l.controly});
+			linksClone.push({source: nodesClone[l.source.index], target: nodesClone[l.target.index], color: l.color, controlx: l.controlx, controly: l.controly, copy: l.copy, copies: l.copies, id: l.id});
 		else
-			linksClone.push({source:nodesClone[l.source.index], target: nodesClone[l.target.index], color:l.color});
+			linksClone.push({source: nodesClone[l.source.index], target: nodesClone[l.target.index], color: l.color, copy: l.copy, copies: l.copies, id: l.id});
 		
 	}
-	return {nodes:nodesClone, links:linksClone, nextID:nextID};
+	return {nodes:nodesClone, links:linksClone, nextIDv:nextIDv, nextIDe:nextIDe};
 }
 function save_state()
 {
@@ -2195,7 +2238,8 @@ function load_state(state)
 		nodes.push(n);
 	for (var l of state.links)
 		links.push(l);
-	nextID = state.nextID;
+	nextIDv = state.nextIDv;
+	nextIDe = state.nextIDe;
 	update_graph();
 	write_graph();
 	force.start();
