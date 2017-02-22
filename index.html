@@ -44,7 +44,7 @@
 .link-background {
 	fill:none;
 	stroke: #999;
-	stroke-width: 16px;
+	stroke-width: 7px; /* 16px for width of vertex */
 	opacity:0;
 }
 
@@ -375,9 +375,18 @@ var force = d3.layout.force()
 	.charge(-600)
 	.gravity(.1)
 	.linkDistance(120)
-	.linkStrength(.8)
 	.size([width, height])
-	.on("tick", tick);
+	.on("tick", tick)
+	/* .linkStrength(.8); */
+	.linkStrength(
+		function(d,i)
+		{
+			while (i--)
+				if (links[i].source == d.source && links[i].target == d.target || links[i].target == d.source && links[i].source == d.target)
+					return 0;
+			return .8;
+		});
+		
 
 set_graph_mode();
 
@@ -827,10 +836,16 @@ function get_edge_path(d)
 	var coords;
 	if ("controlx" in d)
 		coords = ["M", d.source.x, d.source.y, "Q", d.controlx, d.controly, d.target.x, d.target.y];
+	else if (d.source == d.target)
+	{
+		scale = 5*d.copy+30
+		coords = ["M", x1, y1, "C", x1+scale*(d.copy+1), y1-scale*2, ",", x1-scale*(d.copy+1), y1-scale*2, x2, y2];
+	}
 	else
 	{
 		var offset = d.copy - d.copies/2.,
-			scale  = .1*offset;
+			scale  = 10*offset/dist(x1,y1,x2,y2);
+			//scale  = .1*offset;
 		var controls = {x: (x1+x2)/2. + scale*(y1-y2), y: (y1+y2)/2.-scale*(x1-x2)};
 		coords = ["M", x1, y1, "Q", controls.x, controls.y, x2, y2];
 		//coords = ["M", d.source.x, d.source.y, "L", d.target.x, d.target.y];
@@ -851,11 +866,6 @@ var sourcePinned, targetPinned, edgeMoved;
 
 function curve_edge_drag_start(d)
 {
-	sourcePinned = d.source.fixed;
-	d.source.fixed = 1;
-	targetPinned = d.target.fixed;
-	d.target.fixed = 1;
-	
 	x0 = y0 = null;
 	
 	var edge = d3.select(this.parentNode).select(".link");
@@ -881,12 +891,19 @@ function curve_edge_drag(d)
 	}
 	
 	var edgeParent = d3.select(this.parentNode);
-	if (dist(d3.event.x,d3.event.y,x0,y0)>5 && !edgeMoved)
+	if (!edgeMoved && dist(d3.event.x,d3.event.y,x0,y0)>5)
 	{
 		clearTimeout(timeoutID);
 		edgeParent.select(".link").classed("selected", selectedAtStart);
-		unfloat_edge(d);
-		edgeMoved = true;
+		if (d.source != d.target)
+		{
+			unfloat_edge(d);
+			edgeMoved = true;
+			sourcePinned = d.source.fixed;
+			d.source.fixed = 1;
+			targetPinned = d.target.fixed;
+			d.target.fixed = 1;
+		}
 	}
 	if (edgeMoved)
 	{
@@ -941,7 +958,7 @@ function curve_edge_drag_end(d)
 		case CONTRACT:
 			save_state();
 			contract_edge(d);
-			update_graph();
+// 			update_graph();
 			write_graph();
 			force.start();
 			break;
@@ -1352,77 +1369,20 @@ function delete_edge(d)
 	}
 }
 
-function contract_edge(d, toDelete)
+// node.transition().duration(500).tween("", function(d) {var xinterp = d3.interpolateNumber(d.x, 500), yinterp = d3.interpolateNumber(d.y, 500); return function(t){d.x = d.px = xinterp(t); d.y = d.py = yinterp(t); tick();};}).ease("cubic-in").each("end", clear_graph)
+
+function contract_edge(d)
 {
-	if (d.source.id == d.target.id)
-		return;
-	var deleteNow = false;
-	if (toDelete == null) // then delete the edges in this function
-	{
-		toDelete = [];
-		toDelete.length = links.length;
-		for (var i = 0; i < links.length; i++)
-			toDelete[i] = false;
-		deleteNow = true;
-	}
-	
-	var adj=[];
-	adj.length = nodes.length;
-	for (var i = 0; i < nodes.length; i++)
-		adj[i] = false;
-	var v1 = Math.min(d.source.index, d.target.index);
-	var v2 = Math.max(d.source.index, d.target.index);
-	
-	for (var i = 0; i < links.length;i++)
-	{
-		var l = links[i];
-		
-		if ((l.source.index == v1 && l.target.index == v2) || (l.target.index == v1 && l.source.index == v2))
-		{
-			toDelete[i] = true;
-			l.source = l.target = nodes[v1];
-		}
-		else if (l.source.index == v1 || l.source.index == v2)
-		{
-			if (adj[l.target.index])
-				toDelete[i] = true;
-			adj[l.target.index] = true;
-			l.source = nodes[v1];
-		}
-		else if (l.target.index == v1 || l.target.index == v2)
-		{
-			if (adj[l.source.index])
-				toDelete[i] = true;
-			adj[l.source.index] = true;
-			l.target = nodes[v1];
-		}
-	}
-	
-	adj[d.source.index] = adj[d.target.index] = false;
-	
-	if (deleteNow)
-	{
-		for (var i = links.length - 1; i >= 0; i--)
-		{
-			if (toDelete[i])
-			{
-				links[i] = links[links.length-1];
-				links.length--;
-			}
-		}
-	}
-	var avgx = (nodes[v1].x + nodes[v2].x)/2;
-	var avgy = (nodes[v1].y + nodes[v2].y)/2;
-	nodes[v1].px = avgx;
-	nodes[v1].py = avgy;
-	nodes[v1].x = avgx;
-	nodes[v1].y = avgy;
-	
-	delete_vertex(nodes[v2]);
-	
+	delete_edge(d);
+	var newv;
+	if (d.source == d.target)
+		newv = d.source;
+	else
+		newv = identify_vertices([d.source.index, d.target.index]);
+	update_graph();
 	if (d3.event.shiftKey)
-			drawingBoard.select("#v"+v1)
-				.classed("selected", true);
+		drawingBoard.select("#v"+newv.id)
+			.classed("selected", true);
 }
 
 function split_edge(d)
@@ -1541,11 +1501,73 @@ function delete_button_press()
 	}
 }
 
+// identify vertices, preserving and potentially creating multi-edges
+// verts is an array of indices
+function identify_vertices(verts)
+{
+	if (verts.length.length == 0)
+		return;
+	var v2identified = [], nbr2edges = [];
+	v2identified.length = nbr2edges.length = nodes.length;
+	for (var i = 0; i < nodes.length; i++)
+		v2identified[i] = false, nbr2edges[i] = [];
+	for (var v of verts)
+		v2identified[v] = true;
+	var newvindex = verts.reduce(function (a,b) {return Math.min(a,b);});
+	var newv = nodes[newvindex];
+	// update edges
+	for (var i = links.length-1; i>=0; i--)
+	{
+		var l = links[i], otherEnd = null;
+		if (v2identified[l.source.index] && v2identified[l.target.index])
+		{
+			l.source = l.target = newv;
+		}
+		if (v2identified[l.source.index])
+		{
+			otherEnd = l.target.index;
+			l.source = newv;
+			l.copy = nbr2edges[otherEnd].length;
+			nbr2edges[otherEnd].push(l);
+		}
+		else if (v2identified[l.target.index])
+		{
+			otherEnd = l.source.index;
+			l.target = newv;
+			l.copy = nbr2edges[otherEnd].length;
+			nbr2edges[otherEnd].push(l);
+		}
+	}
+	for (var edgelist of nbr2edges)
+	{
+		for (var l of edgelist)
+		{
+			delete l.controlx; delete l.controly; // float the edges
+			l.copies = edgelist.length-1;
+		}
+	}
+	
+	var numContract = verts.length, sumx=0, sumy=0;
+	for (var v of verts)
+	{
+		sumx += nodes[v].x;
+		sumy += nodes[v].y;
+	}
+	nodes[newvindex].px = sumx/numContract;
+	nodes[newvindex].py = sumy/numContract;
+	nodes[newvindex].x = sumx/numContract;
+	nodes[newvindex].y = sumy/numContract;
+	
+	verts.sort(function (a,b) {return a-b;}); // sort the list
+	for (var i = verts.length-1; i > 0; i--) // go backwards, to avoid changing the indices as we delete the vertices, and skip the first one, which should be the resulting vertex
+		delete_vertex(nodes[verts[i]]);
+	return newv;
+}
+
 function contract_button_press()
 {
 	clearKeyMode();
 	var toContract = [];
-	var newv; // the index of the first vertex being contracted, which will be the resulting vertex.
 	var adj = [];
 	toContract.length = nodes.length;
 	adj.length = nodes.length;
@@ -1566,84 +1588,30 @@ function contract_button_press()
 	if (selectedNodes.empty())
 	{
 		save_state();
-		toDelete = [];
-		toDelete.length = links.length;
-		for (var i = 0; i < links.length; i++)
-			toDelete[i] = false;
-		selectedLinks.each( function(d) { contract_edge(d, toDelete) } );
-		for (var i = links.length - 1; i >= 0; i--) if (toDelete[i])
-		{
-			links[i] = links[links.length-1];
-			links.length--;
-		}
-		update_graph();
+		selectedLinks.each( contract_edge );
+		
 		write_graph();
 		force.start();
+		return;
 	}
 	
 	if (selectedLinks.empty())
 	{
 		save_state();
-		for (var i = 0; i < links.length;)
-		{
-			var l = links[i];
-			if (toContract[l.source.index] && !toContract[l.target.index])
-			{
-				adj[l.target.index] = true;
-				links[i] = links[links.length-1];
-				links.length--;
-			}
-			else if (!toContract[l.source.index] && toContract[l.target.index])
-			{
-				adj[l.source.index] = true;
-				links[i] = links[links.length-1];
-				links.length--;
-			}
-			else
-				i++;
-		}
-	
-		var numContract = 0, sumx=0, sumy=0;
-		for (var i = 0; i < nodes.length; i++) if (toContract[i])
-		{
-			sumx += nodes[i].x;
-			sumy += nodes[i].y;
-			numContract++;
-		}
-	
-		if (numContract == 0)
-			return;
-	
-		for (var i = 0; i < nodes.length; i++)
-		{
-			if (toContract[i])
-			{
-				newv = i;
-				toContract[i] = false;
-				break;
-			}
-		}
-		nodes[newv].px = sumx/numContract;
-		nodes[newv].py = sumy/numContract;
-		nodes[newv].x = sumx/numContract;
-		nodes[newv].y = sumy/numContract;
-	
-		for (var i = nodes.length-1; i >=0; i--)
-		{
-			if (toContract[i]) // we won't delete a vertex before newv, and we don't
-				delete_vertex(nodes[i]); // look at toContract or adj past where we
-			else if (adj[i]) // are deleting vertices, so we shouldn't be corrupting
-				new_edge(nodes[i], nodes[newv]); // anything.
-		}
-	
+		var vlist = [];
+		selectedNodes.each(function (d) { vlist.push(d.index); } );
+		var newv = identify_vertices(vlist);
+		// FIX ME: either delete loops or display them.  neither is no good.
 		update_graph();
+		
 		if (d3.event.shiftKey)
-			drawingBoard.select("#v"+newv)
+			drawingBoard.select("#v"+newv.id)
 				.classed("selected", true);
 		else
 			select_none();
 		write_graph();
 		force.start();
+		return;
 	}
 }
 
@@ -2082,7 +2050,7 @@ function write_togglematrix()
 				.append("input")
 				.attr("type", "checkbox")
 				.attr("id", function(d) {return "cb"+d[0]+"-"+d[1];})
-				.attr("disabled",function(d) {return d[0]==d[1]?"disabled":null;})
+// 				.attr("disabled",function(d) {return d[0]==d[1]?"disabled":null;})
 				.on("change", togglematrix_onchange);
 			entries.exit().remove();
 		}
@@ -2104,14 +2072,13 @@ function togglematrix_onchange(d)
 	var edge = links.filter(function(l) {return l.source.index==d[0] && l.target.index==d[1] || l.source.index==d[1] && l.target.index==d[0];});
 	if (edge.length == 0 && checked)
 	{
-		save_state()
+		save_state();
 		new_edge(nodes[d[0]], nodes[d[1]]);
 	}
 	else if (edge.length!=0 && !checked)
 	{
-		save_state()
-		links[links.indexOf(edge[0])] = links[links.length-1];
-		links.length--;
+		save_state();
+		edge.forEach(delete_edge);
 	}
  	update_graph();
  	//write_graph();
@@ -2138,10 +2105,8 @@ function write_g6()
 		var len = Math.ceil(nv*(nv-1)/12);
 		for (var i = 0; i < len; i++)
 			g6string += String.fromCharCode(63);
-		for (var i = 0; i < links.length; i++)
+		for (var l of links) if (l.source != l.target)
 		{
-			var l = links[i];
-			
 			var V = Math.max(l.source.index, l.target.index);
 			var v = Math.min(l.source.index, l.target.index);
 			var c = Math.floor((V*(V-1)/2+v)/6);
