@@ -838,7 +838,7 @@ function get_edge_path(d)
 		coords = ["M", d.source.x, d.source.y, "Q", d.controlx, d.controly, d.target.x, d.target.y];
 	else if (d.source == d.target)
 	{
-		scale = 5*d.copy+30
+		scale = 5*d.copy+30;
 		coords = ["M", x1, y1, "C", x1+scale*Math.sqrt(d.copy+1), y1-scale*2, ",", x1-scale*Math.sqrt(d.copy+1), y1-scale*2, x2, y2];
 	}
 	else
@@ -1294,7 +1294,12 @@ function new_vertex()
 
 function new_edge(v1, v2)
 {
-	
+	if (v1.index > v2.index)
+	{
+		var t = v1;
+		v1 = v2;
+		v2 = t;
+	}
 	var newe = {source:v1, target:v2, color:"", copy:0, copies:0, controlx:null, id:nextIDe++};
 	links.push(newe);
 	float_edge(newe);
@@ -1526,16 +1531,19 @@ function identify_vertices(verts)
 		if (v2identified[l.source.index])
 		{
 			otherEnd = l.target.index;
-			l.source = newv;
-			l.copy = nbr2edges[otherEnd].length;
-			nbr2edges[otherEnd].push(l);
 		}
 		else if (v2identified[l.target.index])
 		{
 			otherEnd = l.source.index;
-			l.target = newv;
+		}
+		if (otherEnd != null)
+		{
 			l.copy = nbr2edges[otherEnd].length;
 			nbr2edges[otherEnd].push(l);
+			if (newvindex < otherEnd)
+				{ l.source = newv; l.target = nodes[otherEnd]; }
+			else (newvindex < otherEnd)
+				{ l.target = newv; l.source = nodes[otherEnd]; }
 		}
 	}
 	for (var edgelist of nbr2edges)
@@ -1690,6 +1698,8 @@ function generate_TikZ()
 		tikz += "] at (" + (nodes[i].x/(max-min)).toFixed(3) + "," + (-nodes[i].y/(max-min)).toFixed(3) + ") (v" + nodes[i].index + ") {};";
 	}
 	
+	links.sort(function(a,b) { if (a.source!=b.source) return a.source.index-b.source.index; return a.target.index-b.target.index; });
+	
 	tikz += "\n\t\\begin{scope}[on background layer]";
 	
 	for (var i = 0; i < links.length; i++)
@@ -1698,14 +1708,41 @@ function generate_TikZ()
 		tikz += "\n\t\t\\draw[edge";
 		if (l.color != "")
 			tikz += ", " + l.color;
-		tikz += "] (v" + l.target.index + ") ";
-		if ("controlx" in l)
-		{
-			tikz += ".. controls (" + ((l.target.x+2*l.controlx)/(3*(max-min))).toFixed(3) + ", " + ((-l.target.y-2*l.controly)/(3*(max-min))).toFixed(3) + ") and (" + ((l.source.x+2*l.controlx)/(3*(max-min))).toFixed(3) + ", " + ((-l.source.y-2*l.controly)/(3*(max-min))).toFixed(3) + ") .."
-		}
-		else
+		tikz += "] (v" + l.source.index + ") ";
+		if (l.copies == 0 && l.source != l.target)
 			tikz += "to";
-		tikz += " (v" + l.source.index + ");";
+		else
+		{
+			var x1 = l.source.x, x2 = l.target.x, y1 = l.source.y, y2 = l.target.y;
+			var cx1, cx2, cy1, cy2;
+			if ("controlx" in l)
+			{
+				cx1 = (x1+2*l.controlx)/(3*(max-min));
+				cy1 = (-y1-2*l.controly)/(3*(max-min));
+				cx2 = (x2+2*l.controlx)/(3*(max-min));
+				cy2 = (-y2-2*l.controly)/(3*(max-min));
+			}
+			else if(l.source == l.target)
+			{
+				var scale = 5*l.copy+30;
+				cx1 = (x1+scale*Math.sqrt(l.copy+1))/(max-min);
+				cy1 = -(y1-scale*2)/(max-min);
+				cx2 = (x1-scale*Math.sqrt(l.copy+1))/(max-min);
+				cy2 = -(y1-scale*2)/(max-min);
+			}
+			else // multi-edge
+			{
+				var offset = l.copy - l.copies/2.;
+				var scale  = 10*offset/dist(x1,y1,x2,y2);
+				var controls = {x: (x1+x2)/2. + scale*(y1-y2), y: (y1+y2)/2.-scale*(x1-x2)};
+				cx1 = (x1+2*controls.x)/(3*(max-min));
+				cy1 = (-y1-2*controls.y)/(3*(max-min));
+				cx2 = (x2+2*controls.x)/(3*(max-min));
+				cy2 = (-y2-2*controls.y)/(3*(max-min));
+			}
+			tikz += ".. controls (" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and (" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
+		}
+		tikz += " (v" + l.target.index + ");";
 	}
 	
 	tikz += "\n\t\\end{scope}\n\\end{tikzpicture}";
