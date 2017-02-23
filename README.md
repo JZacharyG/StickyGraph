@@ -1,6 +1,6 @@
 # StickyGraph
 
-A javascript program to help you quickly visualize and work with small (undirected) graphs.
+A javascript program to help you quickly visualize and work with small (undirected) graphs and multigraphs.
 
 ## Purpose
 
@@ -37,9 +37,9 @@ There are also buttons to select all edges, all vertices, or de-select everythin
 Also down in the bottom left corner, there are buttons to add vertices, add edges, delete things, and contract edges/identify vertices.  These will mostly do what you would expect!  Let's take a look at them, from top to bottom.
 
 - If you select some vertices and/or edges the **add vertex** button will split each to those edges, and if there are any selected vertices, it will add one new vertex adjacent to all of them.  It will add a new isolated vertex if you don't have anything selected.
-- The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.
+- The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.  You can create multiple edges between the same pair of vertices, but you cannot make loops at the moment.
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
-- The **contract button** can do two slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't mean anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
+- The **contract button** can do two slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't mean anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.  These operations may create a multigraph from a simple one.
 
 And again, if you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever else, so it is always easy to pull your graph back out into the rest of the world.
 
