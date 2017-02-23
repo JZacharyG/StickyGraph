@@ -839,7 +839,7 @@ function get_edge_path(d)
 	else if (d.source == d.target)
 	{
 		scale = 5*d.copy+30
-		coords = ["M", x1, y1, "C", x1+scale*(d.copy+1), y1-scale*2, ",", x1-scale*(d.copy+1), y1-scale*2, x2, y2];
+		coords = ["M", x1, y1, "C", x1+scale*Math.sqrt(d.copy+1), y1-scale*2, ",", x1-scale*Math.sqrt(d.copy+1), y1-scale*2, x2, y2];
 	}
 	else
 	{
@@ -1881,7 +1881,7 @@ function get_adjmatrix()
 		am.push(row);
 	}
 	for (var l of links)
-		am[l.source.index][l.target.index] = am[l.target.index][l.source.index] = 1;
+		am[l.source.index][l.target.index] = am[l.target.index][l.source.index] += 1;
 	return am;
 }
 
@@ -1902,8 +1902,9 @@ function load_adjmatrix()
 {
 	var ams = document.getElementById("matrix-area").value.trim();
 	var flatam = ams
-		.replace(/[^01]/g, "")
-		.split("");
+		.replace(/\D+/g, " ")
+		.trim()
+		.split(" ");
 	var n = Math.sqrt(flatam.length);
 	if (!Number.isInteger(n))
 	{
@@ -1926,11 +1927,6 @@ function load_adjmatrix()
 			console.warn("Row "+i+" doesn't have length "+n);
 			return;
 		}
-		if (am[i][i] != "0")
-		{
-			console.warn("Loop at vertex "+i+" not allowed");
-			return;
-		}
 		for (var j=0; j<i; j++)
 		{
 			if (am[i][j] != am[j][i])
@@ -1940,12 +1936,12 @@ function load_adjmatrix()
 			}
 		}
 	}
-	pre = ams.match(/^[^01]*/)[0];
-	post = ams.match(/[^01]*$/)[0];
+	pre = ams.match(/^\D*/)[0];
+	post = ams.match(/\D*$/)[0];
 	if (n >= 2)
 	{
-		interEntry = ams.match(/[01]([^01]*)[01]/)[1];
-		rex = new RegExp("(?:[^01]*[01]){"+n+"}([^01]*)[01]");
+		interEntry = ams.match(/\d(\D+)\d/)[1];
+		rex = new RegExp("\\d(?:\\D+\\d+){"+(n-1)+"}(\\D+)\\d");
 		interRow = ams.match(rex)[1];
 	}
 	force.stop();
@@ -1954,8 +1950,8 @@ function load_adjmatrix()
 	nextIDv = nodes.length = n;
 	links.length = 0;
 	for (var i=0; i<n; i++)
-		for (var j=0; j<i; j++)
-			if (am[i][j] == "1")
+		for (var j=0; j<=i; j++)
+			for (var count = Number(am[i][j]); count>0; count--)
 				new_edge(nodes[i], nodes[j]);
 	update_graph();
 	document.getElementById("matrix-area")
