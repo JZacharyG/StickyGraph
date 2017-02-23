@@ -618,7 +618,7 @@ redoButton.append("path")
 	.classed("edit-button-path", true)
 	.attr("d","M -13 0 L 13 0 M 13 0 l -7 7 M 13 0 l -7 -7");
 
-
+var colors = ["red", "orange", "yellow", "green", "blue", "violet"];
 
 d3.select("body")
 	.append("svg")
@@ -630,65 +630,19 @@ d3.select("body")
 	.on("click", function () {color_button_press("");})
 	.style("fill", "black");
 
-d3.select("body")
-	.append("svg")
-	.attr("id", "red-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("red",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "red-button")
-	.on("click", function () {color_button_press("red");});
-
-d3.select("body")
-	.append("svg")
-	.attr("id", "orange-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("orange",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "orange-button")
-	.on("click", function () {color_button_press("orange");});
-
-d3.select("body")
-	.append("svg")
-	.attr("id", "yellow-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("yellow",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "yellow-button")
-	.on("click", function () {color_button_press("yellow");});
-
-d3.select("body")
-	.append("svg")
-	.attr("id", "green-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("green",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "green-button")
-	.on("click", function () {color_button_press("green");});
-
-d3.select("body")
-	.append("svg")
-	.attr("id", "blue-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("blue",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "blue-button")
-	.on("click", function () {color_button_press("blue");});
-
-d3.select("body")
-	.append("svg")
-	.attr("id", "violet-button-svg")
-	.classed("color-button-svg",true)
-	.append("rect")
-	.classed("violet",true)
-	.classed("color-button-rect mode-button", true)
-	.attr("id", "violet-button")
-	.on("click", function () {color_button_press("violet");});
+for (var color of colors)
+{
+	var f = function(c) {return function() {color_button_press(c);};};
+	d3.select("body")
+		.append("svg")
+		.attr("id", color+"-button-svg")
+		.classed("color-button-svg",true)
+		.append("rect")
+		.classed(color,true)
+		.classed("color-button-rect mode-button", true)
+		.attr("id", color+"-button")
+		.on("click", f(color));
+}
 
 d3.selectAll(".color-button-svg")
 	.attr("viewBox", "-20 -20 40 40 ")
