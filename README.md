@@ -22,32 +22,32 @@ So, you have a graph that you'd like to draw.  Cool!  Direct your attention to t
 
 StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always click it again later to unpin it.
 
-If you hold the `alt` key while moving a vertex, then it won't pin.  (Well, more accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are also two buttons up at the top that look like a pinned and an unpinned vertex respectively.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
+If you hold the `alt` key while moving a vertex, then it won't pin.  (Well, more accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are buttons in the bottom right decorated with a pinned and an unpinned vertex.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
 
-Want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
+Do you want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
 
 #### Selecting and Coloring
 
 If you hold `shift` while clicking vertex or edge (or just press and hold), you will select that feature.  You can then do useful things with that selection, like assigning them a color (by clicking on the appropriate color in the top right), or removing whatever colors they may presently be assigned (by clicking that black button).  If you hold `shift` while clicking a color button, it will instead select all vertices and edges that are currently assigned that color.  If you click a color button without anything selected, you will enter an "interactive" mode, in which you can paint colors on vertices or edges just by clicking them.
 
-Also, there are some buttons to select all edges, all vertices, or de-select everything.
+There are also buttons to select all edges, all vertices, or de-select everything, located in the bottom right corner.
 
 #### Editing
 
-Way down in the bottom left corner, there are buttons to add vertices, add edges, delete things, and contract edges/identify vertices.  These will mostly do what you would expect!  Let's take a look at them, from top to bottom.
+Also down in the bottom left corner, there are buttons to add vertices, add edges, delete things, and contract edges/identify vertices.  These will mostly do what you would expect!  Let's take a look at them, from top to bottom.
 
 - If you select some vertices and/or edges the **add vertex** button will split each to those edges, and if there are any selected vertices, it will add one new vertex adjacent to all of them.  It will add a new isolated vertex if you don't have anything selected.
 - The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an "interactive delete" mode, where you can click on things to delete them.
-- The **contract button** does a couple of slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't do anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
+- The **contract button** can do two slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't mean anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
 And again, if you choose to edit your graph in any way, StickyGraph will update the graph6 code, adjacency matrix, or whatever else, so it is always easy to pull your graph back out into the rest of the world.
 
-Don't like the changes you've made?  StickyGraph has you covered with some **undo** and **redo** buttons down at the bottom.  They have little arrows on them, which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
+If you regret the changes you've made, StickyGraph has you covered with some **undo** and **redo** buttons.  Located at the bottom of the window, they have little arrows on them which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
 #### Labels and LaTeX Export
 
-Down in the bottom left corner of the screen are two little buttons.  The bottom one toggles the visibility of labels.  If ever you don't like the way your graph is labeled, you can drag a label onto another vertex and they will swap.  Or you can just hide the labels entirely and try to put the issue out of your mind.
+Down in the bottom left corner of the window are two little buttons.  The bottom one toggles the visibility of labels.  If ever you don't like the way your graph is labeled, you can drag a label onto another vertex and they will swap.  Or you can just hide the labels entirely and try to put the issue out of your mind.
 
 The top button will display some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
 
@@ -61,7 +61,7 @@ Most buttons in StickyGraph have an equivalent key that you can press, however m
   - select all vertices: `n`
   - select all edges: `m`
   - select nothing: `,`
-  - pin vertices: `p`
+  - pin vertices: `i`
   - unpin vertices: `u`
 - Graph Editing
   - add vertex mode: `=`
@@ -69,6 +69,7 @@ Most buttons in StickyGraph have an equivalent key that you can press, however m
   - add a single edge: type the first endpoint, `space`, the second endpoint, then hit `enter` while in "add edge" mode
   - delete mode: `delete`
   - contract mode: `/`
+  - return to default mode: `esc`
   - swap two labels: hit `s`, type the first endpoint, `space`, the second endpoint, then hit `enter`
   - undo: `z`
   - redo:  `shift`+`z`
@@ -77,8 +78,10 @@ Most buttons in StickyGraph have an equivalent key that you can press, however m
   - orange: `o`
   - yellow: `y`
   - green: `g`
+  - cyan: `c`
   - blue: `b`
   - violet: `v`
+  - magenta: `p`
   - remove color: `x`
 
 

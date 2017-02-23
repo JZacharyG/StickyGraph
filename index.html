@@ -48,26 +48,28 @@
 	opacity:0;
 }
 
-
-.node.red, .node.red.selected, .color-button-rect.red { fill: #f00; }
-.link.red, .node.red { stroke: #f00; }
+.node.red, .node.red.selected, .color-button-rect.red { fill: #f30; }
+.link.red, .node.red { stroke: #f30; }
 .node.orange, .node.orange.selected, .color-button-rect.orange { fill: #f90; }
 .link.orange, .node.orange { stroke: #f90; }
 .node.yellow, .node.yellow.selected, .color-button-rect.yellow { fill: #ee4; }
 .link.yellow, .node.yellow { stroke: #ee4; }
-.node.green, .node.green.selected, .color-button-rect.green { fill: #0e0; }
-.link.green, .node.green { stroke: #0e0; }
-.node.blue, .node.blue.selected, .color-button-rect.blue { fill: #06f; }
-.link.blue, .node.blue { stroke: #06f; }
-.node.violet, .node.violet.selected, .color-button-rect.violet { fill: #c0c; }
-.link.violet, .node.violet { stroke: #c0c; }
+.node.green, .node.green.selected, .color-button-rect.green { fill: #6e4; }
+.link.green, .node.green { stroke: #6e4; }
+.node.cyan, .node.cyan.selected, .color-button-rect.cyan { fill: #0dd; }
+.link.cyan, .node.cyan { stroke: #0dd; }
+.node.blue, .node.blue.selected, .color-button-rect.blue { fill: #27f; }
+.link.blue, .node.blue { stroke: #27f; }
+.node.violet, .node.violet.selected, .color-button-rect.violet { fill: #90c; }
+.link.violet, .node.violet { stroke: #90c; }
+.node.magenta, .node.magenta.selected, .color-button-rect.magenta { fill: #f5c; }
+.link.magenta, .node.magenta { stroke: #f5c; }
 
 .link.selected {
-	stroke: #fc0;
 	stroke-width: 5px;
 }
 
-.node.selected {
+.node.selected, .link.selected {
 	stroke: #fc0;
 }
 
@@ -212,82 +214,38 @@
 
 
 /* Large windows */
-@media (min-height: 455px) and (min-width: 451px) {
+/* Looks good only through a height of 295px */
+@media (min-width: 451px) {
 	#add-v-button-svg       { right: 10px; bottom: 130px; }
 	#add-e-button-svg       { right: 10px; bottom: 90px; }
 	#delete-button-svg      { right: 10px; bottom: 50px; }
 	#contract-button-svg    { right: 10px; bottom: 10px; }
-	#select-v-button-svg    { right: 50px; top: 50px; }
-	#select-e-button-svg    { right: 50px; top: 90px; }
-	#select-none-button-svg { right: 50px; top: 10px; }
-	#pin-button-svg         { right: 90px; top: 50px; }
-	#unpin-button-svg       { right: 90px; top: 10px; }
+	#select-v-button-svg    { right: 50px; bottom: 50px; }
+	#select-e-button-svg    { right: 50px; bottom: 90px; }
+	#select-none-button-svg { right: 50px; bottom: 10px; }
+	#pin-button-svg         { right: 90px; bottom: 50px; }
+	#unpin-button-svg       { right: 90px; bottom: 10px; }
 	#TikZ-button-svg        { left: 10px; bottom: 50px; }
 	#label-button-svg       { bottom: 10px; left: 10px; }
 	#undo-button-svg        { bottom: 10px; right: 50%; }
 	#redo-button-svg        { bottom: 10px; left: 50%; }
-	#no-color-button-svg    { right: 10px; top: 10px; }
-	#red-button-svg         { right: 10px; top: 50px; }
-	#orange-button-svg      { right: 10px; top: 90px; }
-	#yellow-button-svg      { right: 10px; top: 130px; }
-	#green-button-svg       { right: 10px; top: 170px; }
-	#blue-button-svg        { right: 10px; top: 210px; }
-	#violet-button-svg      { right: 10px; top: 250px; }
-}
-
-/* not tall enough, wide enough that we aren't worrying about that space */
-@media (max-height: 454px) and (min-height: 335px) and (min-width: 451px) {
-	#add-v-button-svg       { bottom: 10px; right: 130px; }
-	#add-e-button-svg       { bottom: 10px; right: 90px; }
-	#delete-button-svg      { bottom: 10px; right: 50px; }
-	#contract-button-svg    { bottom: 10px; right: 10px; }
-	#select-v-button-svg    { right: 50px; top: 50px; }
-	#select-e-button-svg    { right: 50px; top: 90px; }
-	#select-none-button-svg { right: 50px; top: 10px; }
-	#pin-button-svg         { right: 90px; top: 50px; }
-	#unpin-button-svg       { right: 90px; top: 10px; }
-	#TikZ-button-svg        { left: 10px; bottom: 50px; }
-	#label-button-svg       { bottom: 10px; left: 10px; }
-	#undo-button-svg        { bottom: 10px; right: 60%; }
-	#redo-button-svg        { bottom: 10px; left: 40%; }
-	#no-color-button-svg    { right: 10px; top: 10px; }
-	#red-button-svg         { right: 10px; top: 50px; }
-	#orange-button-svg      { right: 10px; top: 90px; }
-	#yellow-button-svg      { right: 10px; top: 130px; }
-	#green-button-svg       { right: 10px; top: 170px; }
-	#blue-button-svg        { right: 10px; top: 210px; }
-	#violet-button-svg      { right: 10px; top: 250px; }
-}
-
-@media (max-height: 334px) and (min-width: 451px) {
-	#add-v-button-svg       { bottom: 10px; right: 170px; }
-	#add-e-button-svg       { bottom: 10px; right: 130px; }
-	#delete-button-svg      { bottom: 10px; right: 90px; }
-	#contract-button-svg    { bottom: 10px; right: 50px; }
-	#select-v-button-svg    { right: 50px; top: 50px; }
-	#select-e-button-svg    { right: 50px; top: 90px; }
-	#select-none-button-svg { right: 50px; top: 10px; }
-	#pin-button-svg         { right: 90px; top: 50px; }
-	#unpin-button-svg       { right: 90px; top: 10px; }
-	#TikZ-button-svg        { left: 10px; bottom: 50px; }
-	#label-button-svg       { bottom: 10px; left: 10px; }
-	#undo-button-svg        { bottom: 10px; right: 60%; }
-	#redo-button-svg        { bottom: 10px; left: 40%; }
-	#no-color-button-svg    { right: 10px; top: 10px; }
-	#red-button-svg         { right: 10px; top: 50px; }
-	#orange-button-svg      { right: 10px; top: 90px; }
-	#yellow-button-svg      { right: 10px; top: 130px; }
-	#green-button-svg       { right: 10px; top: 170px; }
-	#blue-button-svg        { right: 10px; top: 210px; }
-	#violet-button-svg      { right: 10px; top: 250px; }
+	#no-color-button-svg    { right: 50px; top: 50px; }
+	#red-button-svg         { right: 90px; top: 10px; }
+	#orange-button-svg      { right: 50px; top: 10px; }
+	#yellow-button-svg      { right: 10px; top: 10px; }
+	#green-button-svg       { right: 10px; top: 50px; }
+	#cyan-button-svg        { right: 10px; top: 90px; }
+	#blue-button-svg        { right: 50px; top: 90px; }
+	#violet-button-svg      { right: 90px; top: 90px; }
+	#magenta-button-svg     { right: 90px; top: 50px; }
 }
 
 /* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
-@media (max-width: 450px) and (min-width: 375px) {
-	#add-v-button-svg       { bottom: 50px; left: 10px; }
-	#add-e-button-svg       { bottom: 50px; left: 50px; }
-	#delete-button-svg      { bottom: 50px; left: 90px; }
-	#contract-button-svg    { bottom: 50px; left: 130px; }
+@media (max-width: 450px) and (min-width: 365px) {
+	#add-v-button-svg       { bottom: 50px; left: 50%; margin-left: -177.5px; }
+	#add-e-button-svg       { bottom: 50px; left: 50%; margin-left: -137.5px; }
+	#delete-button-svg      { bottom: 50px; left: 50%; margin-left:  -97.5px; }
+	#contract-button-svg    { bottom: 50px; left: 50%; margin-left:  -57.5px; }
 	#select-v-button-svg    { display: none; }
 	#select-e-button-svg    { display: none; }
 	#select-none-button-svg { display: none; }
@@ -295,22 +253,24 @@
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
 	#label-button-svg       { display: none; }
-	#undo-button-svg        { bottom: 10px; right: 50px; }
-	#redo-button-svg        { bottom: 10px; right: 10px; }
-	#no-color-button-svg    { bottom: 10px; left: 10px; }
-	#red-button-svg         { bottom: 10px; left: 50px; }
-	#orange-button-svg      { bottom: 10px; left: 90px; }
-	#yellow-button-svg      { bottom: 10px; left: 130px; }
-	#green-button-svg       { bottom: 10px; left: 170px; }
-	#blue-button-svg        { bottom: 10px; left: 210px; }
-	#violet-button-svg      { bottom: 10px; left: 250px; }
+	#undo-button-svg        { bottom: 50px; left: 50%; margin-left:  102.5px; }
+	#redo-button-svg        { bottom: 50px; left: 50%; margin-left:  142.5px; }
+	#no-color-button-svg    { bottom: 10px; left: 50%; margin-left: -177.5px; }
+	#red-button-svg         { bottom: 10px; left: 50%; margin-left: -137.5px; }
+	#orange-button-svg      { bottom: 10px; left: 50%; margin-left:  -97.5px; }
+	#yellow-button-svg      { bottom: 10px; left: 50%; margin-left:  -57.5px; }
+	#green-button-svg       { bottom: 10px; left: 50%; margin-left:  -17.5px; }
+	#cyan-button-svg        { bottom: 10px; left: 50%; margin-left:   22.5px; }
+	#blue-button-svg        { bottom: 10px; left: 50%; margin-left:   62.5px; }
+	#violet-button-svg      { bottom: 10px; left: 50%; margin-left:  102.5px; }
+	#magenta-button-svg     { bottom: 10px; left: 50%; margin-left:  142.5px; }
 }
 
-@media (max-width: 374px) {
-	#add-v-button-svg       { bottom: 50px; left: 10px; }
-	#add-e-button-svg       { bottom: 50px; left: 50px; }
-	#delete-button-svg      { bottom: 50px; left: 90px; }
-	#contract-button-svg    { bottom: 50px; left: 130px; }
+@media (max-width: 364px) {
+	#add-v-button-svg       { bottom: 35px; left: 50%; margin-left: -157.5px; }
+	#add-e-button-svg       { bottom: 35px; left: 50%; margin-left: -122.5px; }
+	#delete-button-svg      { bottom: 35px; left: 50%; margin-left:  -87.5px; }
+	#contract-button-svg    { bottom: 35px; left: 50%; margin-left:  -52.5px; }
 	#select-v-button-svg    { display: none; }
 	#select-e-button-svg    { display: none; }
 	#select-none-button-svg { display: none; }
@@ -318,15 +278,17 @@
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
 	#label-button-svg       { display: none; }
-	#undo-button-svg        { bottom: 50px; left: 210px; }
-	#redo-button-svg        { bottom: 50px; left: 250px; }
-	#no-color-button-svg    { bottom: 10px; left: 10px; }
-	#red-button-svg         { bottom: 10px; left: 50px; }
-	#orange-button-svg      { bottom: 10px; left: 90px; }
-	#yellow-button-svg      { bottom: 10px; left: 130px; }
-	#green-button-svg       { bottom: 10px; left: 170px; }
-	#blue-button-svg        { bottom: 10px; left: 210px; }
-	#violet-button-svg      { bottom: 10px; left: 250px; }
+	#undo-button-svg        { bottom: 35px; left: 50%; margin-left:  87.5px; }
+	#redo-button-svg        { bottom: 35px; left: 50%; margin-left: 122.5px; }
+	#no-color-button-svg    { bottom: 0px; left: 50%; margin-left: -157.5px; }
+	#red-button-svg         { bottom: 0px; left: 50%; margin-left: -122.5px; }
+	#orange-button-svg      { bottom: 0px; left: 50%; margin-left:  -87.5px; }
+	#yellow-button-svg      { bottom: 0px; left: 50%; margin-left:  -52.5px; }
+	#green-button-svg       { bottom: 0px; left: 50%; margin-left:  -17.5px; }
+	#cyan-button-svg        { bottom: 0px; left: 50%; margin-left:   17.5px; }
+	#blue-button-svg        { bottom: 0px; left: 50%; margin-left:   52.5px; }
+	#violet-button-svg      { bottom: 0px; left: 50%; margin-left:   87.5px; }
+	#magenta-button-svg     { bottom: 0px; left: 50%; margin-left:  122.5px; }
 }
 
 
@@ -618,7 +580,8 @@ redoButton.append("path")
 	.classed("edit-button-path", true)
 	.attr("d","M -13 0 L 13 0 M 13 0 l -7 7 M 13 0 l -7 -7");
 
-var colors = ["red", "orange", "yellow", "green", "blue", "violet"];
+var colors = ["magenta", "red", "orange", "yellow", "green", "cyan", "blue", "violet"];
+var colorstring = colors.join(" ");
 
 d3.select("body")
 	.append("svg")
@@ -761,7 +724,7 @@ function drag_pin_end(d)
 		{
 		case COLOR:
 			var hadColor = v.classed(colorMode);
-			v.classed("selected red orange yellow green blue violet", false)
+			v.classed("selected "+colorstring, false)
 				.each(function(d,i) {d.color=""});
 			if (!hadColor)
 				v.classed(colorMode, true)
@@ -953,7 +916,7 @@ function curve_edge_drag_end(d)
 		{
 		case COLOR:
 			var hadColor = edge.classed(colorMode);
-			edge.classed("selected red orange yellow green blue violet", false)
+			edge.classed("selected "+colorstring, false)
 				.each(function(d,i) {d.color=""});
 			if (!hadColor)
 				edge.classed(colorMode, true)
@@ -1079,7 +1042,7 @@ function keydown_handler()
 			else
 				undo(); // shift-z redoes
 			break;
-		case 68:  // d: switch to drag/pin mode
+		case 27:  // esc: switch to drag/pin mode
 			change_mode(DRAGPIN, ""); break;
 		case 187: // =: add vertex
 			add_vertex_button_press(); break;
@@ -1089,7 +1052,7 @@ function keydown_handler()
 			delete_button_press(); break;
 		case 191: // /: contract/identify stuff
 			contract_button_press(); break;
-		case 80:  // p: pin
+		case 73:  // i: pin
 			pin_button_press(); break;
 		case 85:  // u: unpin
 			unpin_button_press(); break;
@@ -1109,10 +1072,14 @@ function keydown_handler()
 			color_button_press("yellow"); break;
 		case 71:  // g: color mode green
 			color_button_press("green"); break;
+		case 67:  // c: color mode cyan
+			color_button_press("cyan"); break;
 		case 66:  // b: color mode blue
 			color_button_press("blue"); break;
 		case 86:  // v: color mode violet
 			color_button_press("violet"); break;
+		case 80:  // p: color mode magenta
+			color_button_press("magenta"); break;
 		case 83:  // s: swap a labels for the specified pair of vertices
 			keyMode = "Swap Labels";
 			writeKeyboardInfo();
@@ -1489,7 +1456,7 @@ function do_mouse_down(d)
 		case COLOR:
 			var hadColor = feature.classed(colorMode);
 			feature
-				.classed("selected red orange yellow green blue violet", false)
+				.classed("selected "+colorstring, false)
 				.each(function(d,i) {d.color=""});
 			if (!hadColor)
 				feature
@@ -1663,7 +1630,7 @@ function color_button_press(c)
 		else
 		{
 			selected
-				.classed("selected red orange yellow green blue violet", false)
+				.classed("selected "+colorstring, false)
 				.each(function(d,i) {d.color=c})
 				.classed(c, true);
 		}
