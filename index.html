@@ -216,6 +216,7 @@
 /* Large windows */
 /* Looks good only through a height of 295px */
 @media (min-width: 451px) {
+	#multigraph-button-svg  { left:  10px; bottom: 50px; }
 	#add-v-button-svg       { right: 10px; bottom: 130px; }
 	#add-e-button-svg       { right: 10px; bottom: 90px; }
 	#delete-button-svg      { right: 10px; bottom: 50px; }
@@ -225,10 +226,10 @@
 	#select-none-button-svg { right: 50px; bottom: 10px; }
 	#pin-button-svg         { right: 90px; bottom: 50px; }
 	#unpin-button-svg       { right: 90px; bottom: 10px; }
-	#TikZ-button-svg        { left: 10px; bottom: 50px; }
-	#label-button-svg       { bottom: 10px; left: 10px; }
-	#undo-button-svg        { bottom: 10px; right: 50%; }
-	#redo-button-svg        { bottom: 10px; left: 50%; }
+	#TikZ-button-svg        { left:  10px; bottom: 90px; }
+	#label-button-svg       { bottom:10px; left: 10px; }
+	#undo-button-svg        { bottom:10px; right: 50%; }
+	#redo-button-svg        { bottom:10px; left: 50%; }
 	#no-color-button-svg    { right: 50px; top: 50px; }
 	#red-button-svg         { right: 90px; top: 10px; }
 	#orange-button-svg      { right: 50px; top: 10px; }
@@ -242,6 +243,7 @@
 
 /* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
 @media (max-width: 450px) and (min-width: 365px) {
+	#multigraph-button-svg  { bottom: 50px; left: 50%; margin-left:   22.5px;}
 	#add-v-button-svg       { bottom: 50px; left: 50%; margin-left: -177.5px; }
 	#add-e-button-svg       { bottom: 50px; left: 50%; margin-left: -137.5px; }
 	#delete-button-svg      { bottom: 50px; left: 50%; margin-left:  -97.5px; }
@@ -267,6 +269,7 @@
 }
 
 @media (max-width: 364px) {
+	#multigraph-button-svg  { bottom: 35px; left: 50%; margin-left:   17.5px;}
 	#add-v-button-svg       { bottom: 35px; left: 50%; margin-left: -157.5px; }
 	#add-e-button-svg       { bottom: 35px; left: 50%; margin-left: -122.5px; }
 	#delete-button-svg      { bottom: 35px; left: 50%; margin-left:  -87.5px; }
@@ -567,6 +570,28 @@ labelButton.append("path")
 	.classed("edit-button-path", true)
 	.attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
 
+var multigraphButton = d3.select("body")
+	.append("svg")
+	.attr("id", "multigraph-button-svg")
+	.classed("edit-button",true);
+multigraph = multigraphButton.append("rect")
+	.classed("edit-button-rect", true)
+	.on("click", multigraph_button_press);
+multigraphButton.append("path")
+	.classed("link",true)
+	.attr("d", "M -10.07 4 Q 0 7 10.07 4");
+multigraphButton.append("path")
+	.classed("link",true)
+	.attr("d", "M -10.07 -4 Q 0 -7 10.07 -4");
+multigraphButton.append("circle")
+	.classed("node", true)
+	.attr({cx:"17px", cy:"0px", r:"2px"})
+	.attr("clip-path", "url(#clip)");;
+multigraphButton.append("circle")
+	.classed("node", true)
+	.attr({cx:"-17px", cy:"0px", r:"2px"})
+	.attr("clip-path", "url(#clip)");;
+
 var undoButton = d3.select("body")
 	.append("svg")
 	.attr("id", "undo-button-svg")
@@ -803,19 +828,28 @@ function new_edge_drag_end(d1)
 	if (!v2.empty())
 	{
 		d2 = v2.datum();
-		if (d2.id != d1.id)
+		if (d2.id == d1.id)
+			multigraph.classed("selected", true);
+		else if (!multigraph.classed("selected"))
 		{
-			save_state();
-			var newe = new_edge(d1, d2);
-			
-			update_graph();
-			if (d3.event.sourceEvent.shiftKey)
-				drawingBoard.selectAll(".link")
-					.filter(function (d) { return d == newe; })
-					.classed("selected", true);
-			write_graph();
-			force.start();
+			for (l of links)
+			{
+				if (l.source == d1 && l.target == d2 || l.source == d2 && l.target == d1)
+				{
+					multigraph.classed("selected", true);
+					break
+				}
+			}
 		}
+		save_state();
+		var newe = new_edge(d1, d2);
+		update_graph();
+		if (d3.event.sourceEvent.shiftKey)
+			drawingBoard.selectAll(".link")
+				.filter(function (d) { return d == newe; })
+				.classed("selected", true);
+		write_graph();
+		force.start();
 	}
 	d3.event.sourceEvent.preventDefault();
 }
@@ -1147,8 +1181,21 @@ function keydown_handler()
 				var v0 = vInput[0], v1 = vInput[1];
 				if (vIndex == 1 && v0 != null && v1 != null && v0 >= 0 && v0 < nodes.length && v1 >= 0 && v1 < nodes.length)
 				{
+					if (v0 == v1)
+						multigraph.classed("selected", true);
+					else if (!multigraph.classed("selected"))
+					{
+						for (l of links)
+						{
+							if (l.source.index == v0 && l.target.index == v1 || l.source.index == v1 && l.target.index == v0)
+							{
+								multigraph.classed("selected", true);
+								break
+							}
+						}
+					}
 					save_state();
-					new_edge(nodes[vInput[0]], nodes[vInput[1]]);
+					new_edge(nodes[v0], nodes[v1]);
 					update_graph();
 					write_graph();
 					force.start();
@@ -1364,13 +1411,12 @@ function delete_vertex(d)
 
 function delete_edge(d)
 {
-	var i = links.indexOf(d)
+	var i = links.indexOf(d);
 	if (i != -1)
 	{
 		unfloat_edge(d);
 		links[i] = links[links.length-1];
 		links.length--;
-		return;
 	}
 }
 
@@ -1378,6 +1424,8 @@ function delete_edge(d)
 
 function contract_edge(d)
 {
+	if (links.indexOf(d) == -1) // the edge has already been deleted, for whatever reason
+		return;
 	delete_edge(d);
 	var newv;
 	if (d.source == d.target)
@@ -1510,7 +1558,7 @@ function delete_button_press()
 // verts is an array of indices
 function identify_vertices(verts)
 {
-	if (verts.length.length == 0)
+	if (verts.length == 0)
 		return;
 	var v2identified = [], nbr2edges = [];
 	v2identified.length = nbr2edges.length = nodes.length;
@@ -1538,12 +1586,17 @@ function identify_vertices(verts)
 		}
 		if (otherEnd != null)
 		{
-			l.copy = nbr2edges[otherEnd].length;
-			nbr2edges[otherEnd].push(l);
-			if (newvindex < otherEnd)
-				{ l.source = newv; l.target = nodes[otherEnd]; }
-			else (newvindex < otherEnd)
-				{ l.target = newv; l.source = nodes[otherEnd]; }
+			if ((otherEnd != newvindex && nbr2edges[otherEnd].length==0) || multigraph.classed("selected"))
+			{
+				l.copy = nbr2edges[otherEnd].length;
+				nbr2edges[otherEnd].push(l);
+				if (newvindex < otherEnd)
+					{ l.source = newv; l.target = nodes[otherEnd]; }
+				else (newvindex < otherEnd)
+					{ l.target = newv; l.source = nodes[otherEnd]; }
+			}
+			else
+				delete_edge(l);
 		}
 	}
 	for (var edgelist of nbr2edges)
@@ -1653,6 +1706,64 @@ function color_button_press(c)
 				.each(function(d,i) {d.color=c})
 				.classed(c, true);
 		}
+	}
+}
+
+function simplify()
+{
+	// remove loops and multi-edges
+	var changed = false;
+	links.sort(function(a,b) { if (a.source!=b.source) return a.source.index-b.source.index; return a.target.index-b.target.index; });
+	for (var i = links.length-1; i>0; i--)
+	{
+		l = links[i];
+		lp = links[i-1];
+		if (l.source == l.target || l.source == lp.source && l.target == lp.target)
+		{
+			if (!changed)
+			{
+				save_state();
+				changed = true;
+			}
+			links[i] = links[links.length-1];
+			links.length--;
+		}
+		else
+			l.copies = l.copy = 0; 
+	}
+	if (links.length>0)
+	{
+		if (links[0].source == links[0].target)
+		{
+			if (!changed)
+			{
+				save_state();
+				changed = true;
+			}
+			links[0] = links[links.length-1];
+			links.length--;
+		}
+		else
+			links[0].copies = links[0].copy = 0;
+	}
+	if (changed)
+	{
+		update_graph();
+		write_graph();
+		force.start();
+	}
+}
+
+function multigraph_button_press()
+{
+	if (multigraph.classed("selected"))
+	{
+		simplify();
+		multigraph.classed("selected", false);
+	}
+	else
+	{
+		multigraph.classed("selected", true);
 	}
 }
 
@@ -1943,6 +2054,11 @@ function load_adjmatrix()
 		.trim()
 		.split(" ");
 	var n = Math.sqrt(flatam.length);
+	if (n==0 || flatam[0] == "")
+	{
+		clear_graph();
+		return;
+	}
 	if (!Number.isInteger(n))
 	{
 		console.warn("Number of entries is not square");
@@ -1951,12 +2067,6 @@ function load_adjmatrix()
 	var am = []
 	for (var i=0; i<n; i++)
 		am.push(flatam.slice(n*i, n*i+n));
-	if (n==0)
-	{
-		clear_graph();
-		console.warn("empty matrix found");
-		return;
-	}
 	for (var i=0; i<n; i++)
 	{
 		if (am[i].length != n)
@@ -1986,10 +2096,15 @@ function load_adjmatrix()
 		nodes.push({id:i, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
 	nextIDv = nodes.length = n;
 	links.length = 0;
-	for (var i=0; i<n; i++)
-		for (var j=0; j<=i; j++)
-			for (var count = Number(am[i][j]); count>0; count--)
-				new_edge(nodes[i], nodes[j]);
+	for (var i=0; i<n; i++) for (var j=0; j<=i; j++)
+	{
+		for (var count = Number(am[i][j]); count>0; count--)
+		{
+			if (i == j || count > 1)
+				multigraph.classed("selected", true);
+			new_edge(nodes[i], nodes[j]);
+		}
+	}
 	update_graph();
 	document.getElementById("matrix-area")
 		.value = pre+am.map(function (a) {return a.join(interEntry);}).join(interRow)+post;
@@ -2106,6 +2221,8 @@ function togglematrix_onchange(d)
 	if (edge.length == 0 && checked)
 	{
 		save_state();
+		if (d[0] == d[1])
+			multigraph.classed("selected", true);
 		new_edge(nodes[d[0]], nodes[d[1]]);
 	}
 	else if (edge.length!=0 && !checked)
