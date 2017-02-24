@@ -905,6 +905,10 @@ function curve_edge_drag_start(d)
 	var edge = d3.select(this.parentNode).select(".link");
 	selecting = d3.event.sourceEvent.shiftKey;
 	selectedAtStart = edge.classed("selected");
+	sourcePinned = d.source.fixed;
+	targetPinned = d.target.fixed;
+	d.source.fixed = 1;
+	d.target.fixed = 1;
 	edgeMoved = false;
 	if (selecting)
 		edge.classed("selected", !selectedAtStart);
@@ -923,7 +927,6 @@ function curve_edge_drag(d)
 		x0 = d3.event.x;
 		y0 = d3.event.y;
 	}
-	
 	var edgeParent = d3.select(this.parentNode);
 	if (!edgeMoved && dist(d3.event.x,d3.event.y,x0,y0)>5)
 	{
@@ -933,10 +936,6 @@ function curve_edge_drag(d)
 		{
 			unfloat_edge(d);
 			edgeMoved = true;
-			sourcePinned = d.source.fixed;
-			d.source.fixed = 1;
-			targetPinned = d.target.fixed;
-			d.target.fixed = 1;
 		}
 	}
 	if (edgeMoved)
@@ -957,6 +956,8 @@ function curve_edge_drag_end(d)
 	clearTimeout(timeoutID);
 	var edgeParent = d3.select(this.parentNode),
 		edge = edgeParent.select(".link");
+	d.source.fixed = sourcePinned;
+	d.target.fixed = targetPinned;
 	if (edgeMoved)
 	{
 		if (dist(d.controlx, d.controly, d.source.x, d.source.y) + dist(d.controlx, d.controly, d.target.x, d.target.y) >= 1.04*dist(d.source.x, d.source.y, d.target.x, d.target.y))
@@ -2091,8 +2092,8 @@ function load_adjmatrix()
 		rex = new RegExp("\\d(?:\\D+\\d+){"+(n-1)+"}(\\D+)\\d");
 		interRow = ams.match(rex)[1];
 	}
-	force.stop();
 	save_state();
+	force.stop();
 	for (var i=nodes.length; i<n; i++)
 		nodes.push({id:i, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
 	nextIDv = nodes.length = n;
