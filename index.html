@@ -1821,7 +1821,7 @@ function generate_TikZ()
 		if (l.color != "")
 			tikz += ", " + l.color;
 		tikz += "] (v" + l.source.index + ") ";
-		if (l.copies == 0 && l.source != l.target)
+		if (l.copies == 0 && l.source != l.target && !("controlx" in l))
 			tikz += "to";
 		else
 		{
