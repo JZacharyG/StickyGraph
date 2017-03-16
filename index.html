@@ -1779,26 +1779,14 @@ function generate_TikZ()
 			.style("display","none");
 		return;
 	}
-	
+	var min = 0, max = 60; // magic numbers... works about right for these force settings
 	d3
-	tikz = "% (In the preamble)\n\n\\usepackage{tikz}\n\\usetikzlibrary{backgrounds}\n\\tikzset{vertex/.style={draw=none, line width = 2.4pt, fill, inner sep = .09cm, circle}}\n\\tikzset{edge/.style={very thick, gray, line cap=round}}\n\n\n\n% (In the body)\n\n\\begin{tikzpicture}[scale=1]";
+	tikz = "% (In the preamble)\n\n\\usepackage{tikz}\n\\usetikzlibrary{calc, backgrounds}\n\\tikzset{vertex/.style={draw=none, line width = 2.4pt, fill, inner sep = .09cm, circle}}\n\\tikzset{edge/.style={very thick, gray, line cap=round}}\n"
+	if (multigraph.classed("selected"))
+		tikz += "\\newcommand{\\multisep}{"+(10/(max-min)).toFixed(4)+"}\n";
+	tikz += "\n\n\n% (In the body)\n\n\\begin{tikzpicture}[scale=1]";
 	
 	var printLabels = labelRect.classed("selected");
-	
-// 	var min = Number.MAX_VALUE,
-// 		max = Number.MIN_VALUE;
-// 	
-// 	for (var i = 0; i < nodes.length; i++)
-// 	{
-// 		min = Math.min(min, nodes[i].x);
-// 		max = Math.max(max, nodes[i].x);
-// 	}
-// 	console.log(min);
-// 	console.log(max);
-// 	console.log(max-min);
-// 	console.log(width);
-	
-	var min = 0, max = 60; // magic numbers... works about right for the force settings
 	
 	for (var i = 0; i < nodes.length; i++)
 	{
@@ -1817,6 +1805,8 @@ function generate_TikZ()
 	for (var i = 0; i < links.length; i++)
 	{
 		var l = links[i];
+		if (l.copies != 0 && l.source != l.target && !("controlx" in l))
+			tikz += "\n\t\t\\coordinate (c) at ($($(v" + l.source.index + ")!0.5!(v" + l.target.index + ")$)!" + (l.copies/2. - l.copy) + "*\\multisep cm!90:(v" + l.target.index + ")$);";
 		tikz += "\n\t\t\\draw[edge";
 		if (l.color != "")
 			tikz += ", " + l.color;
@@ -1833,6 +1823,7 @@ function generate_TikZ()
 				cy1 = (-y1-2*l.controly)/(3*(max-min));
 				cx2 = (x2+2*l.controlx)/(3*(max-min));
 				cy2 = (-y2-2*l.controly)/(3*(max-min));
+				tikz += ".. controls (" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and (" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
 			}
 			else if(l.source == l.target)
 			{
@@ -1841,18 +1832,12 @@ function generate_TikZ()
 				cy1 = -(y1-scale*2)/(max-min);
 				cx2 = (x1-scale*Math.sqrt(l.copy+1))/(max-min);
 				cy2 = -(y1-scale*2)/(max-min);
+				tikz += ".. controls (" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and (" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
 			}
 			else // multi-edge
 			{
-				var offset = l.copy - l.copies/2.;
-				var scale  = 10*offset/dist(x1,y1,x2,y2);
-				var controls = {x: (x1+x2)/2. + scale*(y1-y2), y: (y1+y2)/2.-scale*(x1-x2)};
-				cx1 = (x1+2*controls.x)/(3*(max-min));
-				cy1 = (-y1-2*controls.y)/(3*(max-min));
-				cx2 = (x2+2*controls.x)/(3*(max-min));
-				cy2 = (-y2-2*controls.y)/(3*(max-min));
+				tikz += ".. controls ($(v" + l.source.index + ")!2/3!(c)$) and ($(v" + l.target.index + ")!2/3!(c)$) ..";
 			}
-			tikz += ".. controls (" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and (" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
 		}
 		tikz += " (v" + l.target.index + ");";
 	}
