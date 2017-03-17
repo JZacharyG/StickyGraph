@@ -1828,11 +1828,11 @@ function generate_TikZ()
 			else if(l.source == l.target)
 			{
 				var scale = 5*l.copy+30;
-				cx1 = (x1+scale*Math.sqrt(l.copy+1))/(max-min);
-				cy1 = -(y1-scale*2)/(max-min);
-				cx2 = (x1-scale*Math.sqrt(l.copy+1))/(max-min);
-				cy2 = -(y1-scale*2)/(max-min);
-				tikz += ".. controls (" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and (" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
+				cx1 = (scale*Math.sqrt(l.copy+1))/(max-min);
+				cy1 = (scale*2)/(max-min);
+				cx2 = (-scale*Math.sqrt(l.copy+1))/(max-min);
+				cy2 = (scale*2)/(max-min);
+				tikz += ".. controls +(" + cx1.toFixed(3) + ", " + cy1.toFixed(3) + ") and +(" + cx2.toFixed(3) + ", " + cy2.toFixed(3) + ") ..";
 			}
 			else // multi-edge
 			{
