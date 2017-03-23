@@ -163,9 +163,9 @@
 
 #TikZ-div {
 	position:fixed;
-	top:55px;
+	top:49px;
 	bottom:10px;
-	left:52px;
+	left:49px;
 	padding:0px;
 	border:0px;
 	margin-bottom:5px;
@@ -255,6 +255,7 @@
 	#pin-button-svg         { display: none; }
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
+	#TikZ-div               { display: none; }
 	#label-button-svg       { bottom: 50px; left: 50%; margin-left:   2.5px; }
 	#undo-button-svg        { bottom: 50px; left: 50%; margin-left:  102.5px; }
 	#redo-button-svg        { bottom: 50px; left: 50%; margin-left:  142.5px; }
@@ -282,6 +283,7 @@
 	#pin-button-svg         { display: none; }
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
+	#TikZ-div               { display: none; }
 	#label-button-svg       { bottom: 35px; left: 50%; margin-left:    0.0px; }
 	#undo-button-svg        { bottom: 35px; left: 50%; margin-left:   87.5px; }
 	#redo-button-svg        { bottom: 35px; left: 50%; margin-left:  122.5px; }
@@ -692,7 +694,7 @@ function resize() {
 	dx = (windowWidth-width)/2, dy = (windowHeight-height)/2;
 	drawingBoard.attr("viewBox", ""+(-dx)+" "+(-dy)+" "+(windowWidth)+" "+(windowHeight));
 	overlay.attr({x:-dx, y: -dy, width:windowWidth, height: windowHeight});
-	d3.select("#TikZ-area").style("max-width", ""+(windowWidth-110)+"px");
+	d3.select("#TikZ-area").style("max-width", ""+(windowWidth-104)+"px");
 }
 
 var zoomable = drawingBoard.append("g");
