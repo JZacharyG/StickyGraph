@@ -125,7 +125,7 @@
 .edit-button-path {
 	stroke:black;
 	stroke-width:3px;
-	fill:black;
+	fill:none;
 	pointer-events: none;
 }
 
@@ -216,7 +216,7 @@
 /* Large windows */
 /* Looks good only through a height of 295px */
 @media (min-width: 451px) {
-	#multigraph-button-svg  { left:  10px; bottom: 50px; }
+	#multigraph-button-svg  { left:  10px; bottom: 90px; }
 	#add-v-button-svg       { right: 10px; bottom: 130px; }
 	#add-e-button-svg       { right: 10px; bottom: 90px; }
 	#delete-button-svg      { right: 10px; bottom: 50px; }
@@ -226,8 +226,8 @@
 	#select-none-button-svg { right: 50px; bottom: 10px; }
 	#pin-button-svg         { right: 90px; bottom: 50px; }
 	#unpin-button-svg       { right: 90px; bottom: 10px; }
-	#TikZ-button-svg        { left:  10px; bottom: 90px; }
-	#label-button-svg       { bottom:10px; left: 10px; }
+	#TikZ-button-svg        { left:  10px; bottom: 130px; }
+	#label-button-svg       { left:  10px; bottom: 50px; }
 	#undo-button-svg        { bottom:10px; right: 50%; }
 	#redo-button-svg        { bottom:10px; left: 50%; }
 	#no-color-button-svg    { right: 50px; top: 50px; }
@@ -239,6 +239,7 @@
 	#blue-button-svg        { right: 50px; top: 90px; }
 	#violet-button-svg      { right: 90px; top: 90px; }
 	#magenta-button-svg     { right: 90px; top: 50px; }
+	#help-button-svg        { left:  10px; bottom: 10px; }
 }
 
 /* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
@@ -266,6 +267,7 @@
 	#blue-button-svg        { bottom: 10px; left: 50%; margin-left:   62.5px; }
 	#violet-button-svg      { bottom: 10px; left: 50%; margin-left:  102.5px; }
 	#magenta-button-svg     { bottom: 10px; left: 50%; margin-left:  142.5px; }
+	#help-button-svg        { display: none; }
 }
 
 @media (max-width: 364px) {
@@ -292,6 +294,7 @@
 	#blue-button-svg        { bottom:  0px; left: 50%; margin-left:   52.5px; }
 	#violet-button-svg      { bottom:  0px; left: 50%; margin-left:   87.5px; }
 	#magenta-button-svg     { bottom:  0px; left: 50%; margin-left:  122.5px; }
+	#help-button-svg        { display: none; }
 }
 
 
@@ -569,6 +572,19 @@ labelRect = labelButton.append("rect")
 labelButton.append("path")
 	.classed("edit-button-path", true)
 	.attr("d","M -13 5.5 L 13 5.5 M -13 -5.5 L 13 -5.5 M 5.5 -13 L 5.5 13 M -5.5 -13 L -5.5 13");
+
+var helpButton = d3.select("body")
+	.append("svg")
+	.attr("id", "help-button-svg")
+	.classed("edit-button",true);
+helpButton.append("rect")
+	.classed("edit-button-rect",true)
+	.on("click", function () { window.open('usage'); });
+helpButton.append("path")
+	.classed("edit-button-path", true)
+	.attr("d","M -7,-5 C -7,-15 7,-15 7,-5 C 7,0 1,2 0,8 L 0,-6");
+helpButton.append("circle")
+	.attr({cx:"0px", cy:"12px", r:"2.5px"});
 
 var multigraphButton = d3.select("body")
 	.append("svg")
