@@ -8,17 +8,17 @@ So, you have a graph that you'd like to draw.  Cool!  Direct your attention to t
 
 ### Multigraphs
 
-The button in the lower left with a pair of edges between two vertices toggles *multigraph mode*.  This tells StickyGraph whether to think of your graph as a simple graph or a multigraph (also known as a pseudo graph).  While in multigraph mode, for instance, identifying vertices or contracting edges can create loops and duplicate edges, while this will be discarded if working with a simple graph.  Switching from multigraph mode to simple graph mode will replace your graph with its underlying simple graph, and explicitly creating a multi-edge or loop will automatically put you into multigraph mode.
+The button in the lower left with a pair of edges between two vertices toggles *multigraph mode*.  This tells StickyGraph whether to think of your graph as a simple graph or a multigraph (also known as a pseudo graph).  While in multigraph mode, for instance, identifying vertices or contracting edges can create loops and duplicate edges, while those would be discarded if working with a simple graph.  Switching from multigraph mode to simple graph mode will replace your graph with its underlying simple graph, and explicitly creating a multi-edge or loop will automatically put you into multigraph mode.
 
-Be forewarned, some graph input/output formats (like graph6) only make sense for simple graphs, so they will always encode the underlying simple graph.
+Be forewarned, some graph input/output formats (like graph6) do not make sense for multigraphs, so they will always encode the underlying simple graph.
 
 ### Drawing and Pinning
 
-StickyGraph will now try its best to draw your graph, but hey, nobody is perfect.  If you feel the need to move a vertex somewhere else, then it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always click it again later to unpin it.
+StickyGraph will try its best to draw your graph, but hey, nobody's perfect.  If you choose to move a vertex somewhere else, it will stay where you put it while the rest of the graph squirms around to accommodate.  You can always click it again later to unpin it.
 
-If you hold the `alt` key while moving a vertex, then it won't pin.  (Well, more accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you will toggle whether the vertex is pinned.) There are buttons in the bottom right decorated with a pinned and an unpinned vertex.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
+If you hold the `alt` key while moving a vertex, then it won't pin.  (Well, more accurately, it flips the default pinning behavior.  Normally this is to *pin* the vertex on drag, so holding `alt` will cause the dragged vertex to *unpin*.  When selecting a vertex or applying a color, however, the default behavior is to not change whether the vertex is pinned, so with modifier held, you *will* toggle whether the vertex is pinned.) There are buttons in the bottom right decorated with a pinned and an unpinned vertex.  They will, respectively, pin or unpin all vertices (or just the selected ones, if you have some selected).
 
-Do you want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull, and you should be in business.  If you curve an edge, it will automatically pin the incident vertices.
+Do you want those edges to be a little less straight?  Hey, no problem!  Just grab one and pull!  If you curve an edge, it will automatically pin the incident vertices.
 
 ### Selecting and Coloring
 
@@ -30,7 +30,7 @@ There are also buttons to select all edges, all vertices, or de-select everythin
 
 Also down in the bottom right corner, there are buttons to add vertices, add edges, delete things, and contract edges/identify vertices.  These will mostly do what you would expect!  Let's take a look at them, from top to bottom.
 
-- If you select some vertices and/or edges the **add vertex** button will split each to those edges, and if there are any selected vertices, it will add one new vertex adjacent to all of them.  In particular, it will add a new isolated vertex if you don't have anything selected.
+- If you select some vertices and/or edges, the **add vertex** button will split each of those edges, and if there are any selected vertices, it will add one new vertex adjacent to all of them.  It will add a new isolated vertex if you don't have anything selected.
 - The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.  You can create loops and multiple edges between the same pair of vertices.
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an interactive mode in which you can click on things to delete them!
 - The **contract button** can do two slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't mean anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
@@ -41,9 +41,9 @@ If you regret the changes you've made, StickyGraph has you covered with some **u
 
 ### Labels and LaTeX Export
 
-Down in the bottom left corner of the window are two little buttons.  The bottom one toggles the visibility of labels.  If ever you don't like the way your graph is labeled, you can drag a label onto another vertex and they will swap.  Or you can just hide the labels entirely and try to put the issue out of your mind.
+Down in the bottom left corner of the window are four little buttons.  From bottom to top we have an interrobang, which takes you to this help page, a number sign which toggles the visibility of labels, a pair of edges toggling multigraph-mode, and the word Ti*k*Z, which displays code to draw the graph in LaTeX, exactly as it appears in StickyGraph.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away.  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably have been using anyway.
 
-The top button will display some LaTeX code to include your beautiful graph in a document.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away!  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably be using anyway.
+If ever you don't like the way your graph is labeled, you can drag a label onto another vertex and they will swap.  Or you can just hide the labels entirely and try to put the issue out of your mind.
 
 ### Using a Keyboard
 
