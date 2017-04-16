@@ -88,13 +88,18 @@
 	left: 15px;
 	top:  15px;
 	font-family: Arial, Helvetica, sans-serif;
+	pointer-events:none;
+}
+
+#graph-input-form * {
+	pointer-events: auto;
 }
 
 #graph-input {
 	background-color: rgba(255, 255, 255, 0.8);
 }
 
-#graph-input-type {
+#graph-mode-input {
 	left:15px;
 	top: 50px;
 }
@@ -555,7 +560,7 @@ var TikZButton = d3.select("body")
 TikZButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", generate_TikZ);
-TikZText = TikZButton.append("text")
+var TikZText = TikZButton.append("text")
 	.attr("id","TikZ-button-text")
 	.attr({x:"0px", y:"6px"});
 TikZText.append("tspan").text("Ti");
@@ -566,7 +571,7 @@ var labelButton = d3.select("body")
 	.append("svg")
 	.attr("id", "label-button-svg")
 	.classed("edit-button",true);
-labelRect = labelButton.append("rect")
+var labelRect = labelButton.append("rect")
 	.classed("edit-button-rect selected",true)
 	.on("click", function () { 
 		d3.select(this).classed("selected", !d3.select(this).classed("selected"));
@@ -592,7 +597,7 @@ var multigraphButton = d3.select("body")
 	.append("svg")
 	.attr("id", "multigraph-button-svg")
 	.classed("edit-button",true);
-multigraph = multigraphButton.append("rect")
+var multigraph = multigraphButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", multigraph_button_press);
 multigraphButton.append("path")
@@ -614,7 +619,7 @@ var undoButton = d3.select("body")
 	.append("svg")
 	.attr("id", "undo-button-svg")
 	.classed("edit-button",true);
-undoRect = undoButton.append("rect")
+undoButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", undo);
 undoButton.append("path")
@@ -625,7 +630,7 @@ var redoButton = d3.select("body")
 	.append("svg")
 	.attr("id", "redo-button-svg")
 	.classed("edit-button",true);
-redoRect = redoButton.append("rect")
+redoButton.append("rect")
 	.classed("edit-button-rect", true)
 	.on("click", redo);
 redoButton.append("path")
@@ -690,8 +695,8 @@ resize();
 d3.select(window).on("resize", resize);
 
 function resize() {
-	windowWidth = window.innerWidth, windowHeight = window.innerHeight;
-	dx = (windowWidth-width)/2, dy = (windowHeight-height)/2;
+	var windowWidth = window.innerWidth, windowHeight = window.innerHeight;
+	var dx = (windowWidth-width)/2, dy = (windowHeight-height)/2;
 	drawingBoard.attr("viewBox", ""+(-dx)+" "+(-dy)+" "+(windowWidth)+" "+(windowHeight));
 	overlay.attr({x:-dx, y: -dy, width:windowWidth, height: windowHeight});
 	d3.select("#TikZ-area").style("max-width", ""+(windowWidth-104)+"px");
@@ -846,6 +851,7 @@ function new_edge_drag_end(d1)
 	if (!v2.empty())
 	{
 		d2 = v2.datum();
+		save_state();
 		if (d2.id == d1.id)
 			multigraph.classed("selected", true);
 		else if (!multigraph.classed("selected"))
@@ -859,7 +865,6 @@ function new_edge_drag_end(d1)
 				}
 			}
 		}
-		save_state();
 		var newe = new_edge(d1, d2);
 		update_graph();
 		if (d3.event.sourceEvent.shiftKey)
