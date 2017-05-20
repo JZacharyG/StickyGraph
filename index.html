@@ -321,8 +321,10 @@
 <select id="graph-mode-input" onchange="set_graph_mode()">
 	<option value="graph6">Graph6</option>
 	<!-- <option value="pathlist" disabled="disabled">Path List</option> -->
+	<option value="edgelist">Edge List</option>
 	<option value="togglematrix">Interactive A.M.</option>
 	<option value="adjmatrix">Adj. Matrix</option>
+	<option value="adjlist">Adj. List</option>
 	<option value="laplacian">Laplacian</option>
 	<option value="normlaplacian">N. Laplacian</option>
 	<option value="none">None</option>
@@ -370,7 +372,9 @@ const NONE          = 0,
       TOGGLEMATRIX  = 3,
       ADJMATRIX     = 4,
       LAPLACIAN     = 5,
-      NORMLAPLACIAN = 6;
+      NORMLAPLACIAN = 6,
+      EDGELIST      = 7,
+      ADJLIST       = 8;
 
 
 var color = d3.scale.category10(); // FIX ME? do we ever use this?
@@ -1948,10 +1952,12 @@ function set_graph_mode()
 	case "none":          graphMode = NONE;          break;
 	case "graph6":        graphMode = GRAPH6;        break;
 	case "pathlist":      graphMode = PATHLIST;      break;
+	case "edgelist":      graphMode = EDGELIST;      break;
 	case "togglematrix":  graphMode = TOGGLEMATRIX;  break;
 	case "adjmatrix":     graphMode = ADJMATRIX;     break;
 	case "laplacian":     graphMode = LAPLACIAN;     break;
 	case "normlaplacian": graphMode = NORMLAPLACIAN; break;
+	case "adjlist":       graphMode = ADJLIST;       break;
 	default:
 		console.error("unrecognized graph mode: "+document.getElementById("graph-mode-input").value);
 		return;
@@ -1970,6 +1976,8 @@ function set_graph_mode()
 	case ADJMATRIX:
 	case LAPLACIAN:
 	case NORMLAPLACIAN:
+	case EDGELIST:
+	case ADJLIST:
 		d3.select("#graph-input").style("display", "none");
 		d3.select("#matrix-area").style("display", null);
 		d3.select("#togglematrix-table").style("display", "none");
@@ -1987,7 +1995,7 @@ function set_graph_mode()
 		d3.select("#togglematrix-table").style("display", "none");
 		break;
 	}
-	if (graphMode == ADJMATRIX)
+	if (graphMode == ADJMATRIX || graphMode == EDGELIST)
 	{
 		d3.select("#matrix-area").attr("readonly", null);
 		d3.select("#submit-button").style("display", null);
@@ -2006,10 +2014,12 @@ function write_graph()
 	{
 	case GRAPH6:        write_g6();            break;
 	case PATHLIST:      write_pathlist();      break;
+	case EDGELIST:      write_edgelist();      break;
 	case ADJMATRIX:     write_adjmatrix();     break;
 	case LAPLACIAN:     write_laplacian();     break;
 	case TOGGLEMATRIX:  write_togglematrix();  break;
 	case NORMLAPLACIAN: write_normlaplacian(); break;
+	case ADJLIST:       write_adjlist();       break;
 	}
 }
 
@@ -2019,7 +2029,9 @@ function load_graph()
 	{
 	case GRAPH6:        load_g6();            break;
 	case PATHLIST:      load_pathlist();      break;
+	case EDGELIST:      load_edgelist();      break;
 	case ADJMATRIX:     load_adjmatrix();     break;
+//	case ADJLIST:       load_adjlist();       break;
 	}
 	document.getElementById("graph-input").blur();
 	return false;
@@ -2103,8 +2115,12 @@ function load_adjmatrix()
 	save_state();
 	force.stop();
 	for (var i=nodes.length; i<n; i++)
-		nodes.push({id:i, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
-	nextIDv = nodes.length = n;
+	{
+		nodes.push({id:nextIDv, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
+		nextIDv++;
+	}
+	nodes.length = n;
+	// FIX ME: check if edges are already present, so that we can preserve edge colorings and curvings
 	links.length = 0;
 	for (var i=0; i<n; i++) for (var j=0; j<=i; j++)
 	{
@@ -2251,6 +2267,96 @@ function write_pathlist()
 }
 
 function load_pathlist()
+{
+
+}
+
+// FIX ME: store these things in local storage?
+var preEdgeList="[(", vertexSeparator=",", edgeSeparator="), (", postEdgeList=")]";
+
+function write_edgelist()
+{
+	links.sort(function(a,b) { if (a.source!=b.source) return a.source.index-b.source.index; return a.target.index-b.target.index; });
+	var list = [];
+	for (var l of links)
+		list.push("" + l.source.index + vertexSeparator + l.target.index);
+	document.getElementById("matrix-area")
+		.value = preEdgeList+list.join(edgeSeparator)+postEdgeList;
+}
+
+function load_edgelist()
+{
+	var els = document.getElementById("matrix-area").value.trim();
+	var flatel = els
+		.replace(/\D+/g, " ")
+		.trim()
+		.split(" ");
+	
+	if (flatel[0]=="")
+	{
+		clear_graph();
+		return;
+	}
+	
+	if (flatel.length % 2 == 1)
+	{
+		console.warn("Odd number of vertices listed");
+		return;
+	}
+	var n = 0; // inferred number of vertices
+	for (var i=0; i < flatel.length; i++)
+	{
+		var v = Number(flatel[i]);
+		flatel[i] = v;
+		n = Math.max(n,v+1);
+	}
+	
+	preEdgeList = els.match(/^\D*/)[0];
+	postEdgeList = els.match(/\D*$/)[0];
+	vertexSeparator = els.match(/\d(\D+)\d/)[1];
+	if (flatel.length > 2)
+	{
+		edgeSeparator = els.match(/\d\D+\d+(\D+)\d/)[1];
+	}
+	save_state();
+	force.stop();
+	for (var i=nodes.length; i<n; i++)
+	{
+		nodes.push({id:nextIDv, index:i, x:getRandom(0,width), y:getRandom(0,height), color:"", fixed:0});
+		nextIDv++;
+	}
+	nodes.length = n; // to shorten the list if needed
+	links.length = 0;
+	for (var i=0; i<flatel.length; i+=2)
+	{
+		// FIX ME: check for duplicate edges, make a multigraph if needed
+		//if (...)
+ 		//	multigraph.classed("selected", true);
+		new_edge(nodes[flatel[i]], nodes[flatel[i+1]]);
+	}
+	update_graph();
+	write_edgelist();
+	force.start();
+}
+
+function write_adjlist()
+{
+	var am = get_adjmatrix();
+	var n = nodes.length;
+	var rows = [], row;
+	for (var i=0; i<n; i++)
+	{
+		row = []
+		for (var j=0; j<n; j++)
+			for (var c=0; c<am[i][j]; c++)
+				row.push(j);
+		rows.push("" + i + " : " + row.join(" "));
+	}
+	document.getElementById("matrix-area")
+		.value = rows.join("\n");
+}
+
+function load_adjlist()
 {
 
 }
