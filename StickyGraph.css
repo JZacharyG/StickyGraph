@@ -1,0 +1,299 @@
+@-ms-viewport{
+  width: device-width;
+}
+
+#drawing-board-div {
+	position:fixed;
+	left:  0px;
+	right: 0px;
+	top:   0px;
+	bottom:0px;
+	/* border: 3px solid #aaa; */
+}
+
+#drawing-board {
+	display: inline-block;
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	vertical-align: center;
+}
+
+.node {
+	cursor: move;
+	fill: #000;
+	stroke: #000;
+	stroke-width: 6px;
+}
+
+.link {
+	fill:none;
+	stroke: #999;
+	stroke-width: 3px;
+	stroke-dashoffset:-11px;
+	stroke-linecap: round;
+	pointer-events: none;
+}
+
+.link-background {
+	fill:none;
+	stroke: #999;
+	stroke-width: 7px; /* 16px for width of vertex */
+	opacity:0;
+}
+
+.node.red, .node.red.selected, .color-button-rect.red { fill: #f30; }
+.link.red, .node.red { stroke: #f30; }
+.node.orange, .node.orange.selected, .color-button-rect.orange { fill: #f90; }
+.link.orange, .node.orange { stroke: #f90; }
+.node.yellow, .node.yellow.selected, .color-button-rect.yellow { fill: #ee4; }
+.link.yellow, .node.yellow { stroke: #ee4; }
+.node.green, .node.green.selected, .color-button-rect.green { fill: #6e4; }
+.link.green, .node.green { stroke: #6e4; }
+.node.cyan, .node.cyan.selected, .color-button-rect.cyan { fill: #0dd; }
+.link.cyan, .node.cyan { stroke: #0dd; }
+.node.blue, .node.blue.selected, .color-button-rect.blue { fill: #27f; }
+.link.blue, .node.blue { stroke: #27f; }
+.node.violet, .node.violet.selected, .color-button-rect.violet { fill: #90c; }
+.link.violet, .node.violet { stroke: #90c; }
+.node.magenta, .node.magenta.selected, .color-button-rect.magenta { fill: #f5c; }
+.link.magenta, .node.magenta { stroke: #f5c; }
+
+.link.selected {
+	stroke-width: 5px;
+}
+
+.node.selected, .link.selected {
+	stroke: #fc0;
+}
+
+.node.pinned {
+	fill: #999;
+}
+
+.label {
+	text-anchor: middle;
+	font-family: Arial, Helvetica, sans-serif;
+	/* pointer-events: none; */
+}
+
+#graph-input-form {
+	position:fixed;
+	left: 15px;
+	top:  15px;
+	font-family: Arial, Helvetica, sans-serif;
+	pointer-events:none;
+}
+
+#graph-input-form * {
+	pointer-events: auto;
+}
+
+#graph-input {
+	background-color: rgba(255, 255, 255, 0.8);
+}
+
+#graph-mode-input {
+	left:15px;
+	top: 50px;
+}
+
+.overlay {
+	fill: none;
+	pointer-events: all;
+}
+
+.edit-button {
+	position:fixed;
+	pointer-events: none;
+}
+
+.edit-button-rect {
+	fill:white;
+	stroke:#aaa;
+	stroke-width:3px;
+	fill-opacity:0.8;
+	pointer-events: all;
+}
+
+.edit-button-rect.selected {
+	stroke: #fc0;
+	fill: #ffeb99;
+}
+
+.edit-button-path {
+	stroke:black;
+	stroke-width:3px;
+	fill:none;
+	pointer-events: none;
+}
+
+.edit-button-text {
+	font-family: Arial, Helvetica, sans-serif;
+	text-anchor:middle;
+	dominant-baseline:central;
+	font-size:16px;
+	pointer-events: none;
+}
+
+.color-button-svg {
+	position:fixed;
+	pointer-events: none;
+}
+
+.color-button-rect {
+	stroke:#aaa;
+	stroke-width:3px;
+	fill-opacity:1;
+	pointer-events: all;
+}
+
+.color-button-rect.selected {
+	stroke: #fc0;
+}
+
+#TikZ-button-text {
+	font-family:"Times New Roman", Times, serif;
+	text-anchor:middle;
+	/* dominant-baseline:central; */
+	font-size:17px;
+	pointer-events: none;
+}
+
+#TikZ-div {
+	position:fixed;
+	top:49px;
+	bottom:10px;
+	left:49px;
+	padding:0px;
+	border:0px;
+	margin-bottom:5px;
+}
+
+#TikZ-area, #matrix-area {
+	height:100%;
+	margin:0px;
+	padding:2px;
+	border:1px solid;
+	background-color:rgba(255,255,255,.8);
+	font-family:"Lucida Console", Monaco, monospace;
+	overflow:auto;
+	-moz-tab-size : 4;
+	  -o-tab-size : 4;
+	     tab-size : 4;
+}
+
+#TikZ-area {
+	resize:horizontal;
+}
+
+#matrix-area {
+	display:block;
+	width:100px;
+	height:75px;
+	resize:both;
+}
+
+#keyboard-info {
+	position: fixed;
+	bottom: 10px;
+	left: 52px;
+	pointer-events: none;
+	font-family:"Lucida Console", Monaco, monospace;
+}
+
+.label, #graph-input-form, #TikZ-button-text, .edit-button-text, #keyboard-info {
+	-webkit-touch-callout: none; /* iOS Safari */
+	-webkit-user-select: none;   /* Chrome/Safari/Opera */
+	-khtml-user-select: none;    /* Konqueror */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* IE/Edge */
+	user-select: none;           /* non-prefixed version */
+}
+
+
+/* Large windows */
+/* Looks good only through a height of 295px */
+@media (min-width: 451px) {
+	#multigraph-button-svg  { left:  10px; bottom: 90px; }
+	#add-v-button-svg       { right: 10px; bottom: 130px; }
+	#add-e-button-svg       { right: 10px; bottom: 90px; }
+	#delete-button-svg      { right: 10px; bottom: 50px; }
+	#contract-button-svg    { right: 10px; bottom: 10px; }
+	#select-v-button-svg    { right: 50px; bottom: 50px; }
+	#select-e-button-svg    { right: 50px; bottom: 90px; }
+	#select-none-button-svg { right: 50px; bottom: 10px; }
+	#pin-button-svg         { right: 90px; bottom: 50px; }
+	#unpin-button-svg       { right: 90px; bottom: 10px; }
+	#TikZ-button-svg        { left:  10px; bottom: 130px; }
+	#label-button-svg       { left:  10px; bottom: 50px; }
+	#undo-button-svg        { bottom:10px; right: 50%; }
+	#redo-button-svg        { bottom:10px; left: 50%; }
+	#no-color-button-svg    { right: 50px; top: 50px; }
+	#red-button-svg         { right: 90px; top: 10px; }
+	#orange-button-svg      { right: 50px; top: 10px; }
+	#yellow-button-svg      { right: 10px; top: 10px; }
+	#green-button-svg       { right: 10px; top: 50px; }
+	#cyan-button-svg        { right: 10px; top: 90px; }
+	#blue-button-svg        { right: 50px; top: 90px; }
+	#violet-button-svg      { right: 90px; top: 90px; }
+	#magenta-button-svg     { right: 90px; top: 50px; }
+	#help-button-svg        { left:  10px; bottom: 10px; }
+}
+
+/* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
+@media (max-width: 450px) and (min-width: 365px) {
+	#multigraph-button-svg  { bottom: 50px; left: 50%; margin-left:  42.5px;}
+	#add-v-button-svg       { bottom: 50px; left: 50%; margin-left: -177.5px; }
+	#add-e-button-svg       { bottom: 50px; left: 50%; margin-left: -137.5px; }
+	#delete-button-svg      { bottom: 50px; left: 50%; margin-left:  -97.5px; }
+	#contract-button-svg    { bottom: 50px; left: 50%; margin-left:  -57.5px; }
+	#select-v-button-svg    { display: none; }
+	#select-e-button-svg    { display: none; }
+	#select-none-button-svg { display: none; }
+	#pin-button-svg         { display: none; }
+	#unpin-button-svg       { display: none; }
+	#TikZ-button-svg        { display: none; }
+	#TikZ-div               { display: none; }
+	#label-button-svg       { bottom: 50px; left: 50%; margin-left:   2.5px; }
+	#undo-button-svg        { bottom: 50px; left: 50%; margin-left:  102.5px; }
+	#redo-button-svg        { bottom: 50px; left: 50%; margin-left:  142.5px; }
+	#no-color-button-svg    { bottom: 10px; left: 50%; margin-left: -177.5px; }
+	#red-button-svg         { bottom: 10px; left: 50%; margin-left: -137.5px; }
+	#orange-button-svg      { bottom: 10px; left: 50%; margin-left:  -97.5px; }
+	#yellow-button-svg      { bottom: 10px; left: 50%; margin-left:  -57.5px; }
+	#green-button-svg       { bottom: 10px; left: 50%; margin-left:  -17.5px; }
+	#cyan-button-svg        { bottom: 10px; left: 50%; margin-left:   22.5px; }
+	#blue-button-svg        { bottom: 10px; left: 50%; margin-left:   62.5px; }
+	#violet-button-svg      { bottom: 10px; left: 50%; margin-left:  102.5px; }
+	#magenta-button-svg     { bottom: 10px; left: 50%; margin-left:  142.5px; }
+	#help-button-svg        { display: none; }
+}
+
+@media (max-width: 364px) {
+	#multigraph-button-svg  { bottom: 35px; left: 50%; margin-left:   35.0px;}
+	#add-v-button-svg       { bottom: 35px; left: 50%; margin-left: -157.5px; }
+	#add-e-button-svg       { bottom: 35px; left: 50%; margin-left: -122.5px; }
+	#delete-button-svg      { bottom: 35px; left: 50%; margin-left:  -87.5px; }
+	#contract-button-svg    { bottom: 35px; left: 50%; margin-left:  -52.5px; }
+	#select-v-button-svg    { display: none; }
+	#select-e-button-svg    { display: none; }
+	#select-none-button-svg { display: none; }
+	#pin-button-svg         { display: none; }
+	#unpin-button-svg       { display: none; }
+	#TikZ-button-svg        { display: none; }
+	#TikZ-div               { display: none; }
+	#label-button-svg       { bottom: 35px; left: 50%; margin-left:    0.0px; }
+	#undo-button-svg        { bottom: 35px; left: 50%; margin-left:   87.5px; }
+	#redo-button-svg        { bottom: 35px; left: 50%; margin-left:  122.5px; }
+	#no-color-button-svg    { bottom:  0px; left: 50%; margin-left: -157.5px; }
+	#red-button-svg         { bottom:  0px; left: 50%; margin-left: -122.5px; }
+	#orange-button-svg      { bottom:  0px; left: 50%; margin-left:  -87.5px; }
+	#yellow-button-svg      { bottom:  0px; left: 50%; margin-left:  -52.5px; }
+	#green-button-svg       { bottom:  0px; left: 50%; margin-left:  -17.5px; }
+	#cyan-button-svg        { bottom:  0px; left: 50%; margin-left:   17.5px; }
+	#blue-button-svg        { bottom:  0px; left: 50%; margin-left:   52.5px; }
+	#violet-button-svg      { bottom:  0px; left: 50%; margin-left:   87.5px; }
+	#magenta-button-svg     { bottom:  0px; left: 50%; margin-left:  122.5px; }
+	#help-button-svg        { display: none; }
+}
