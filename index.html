@@ -321,6 +321,29 @@ redoButton.append("path")
 	.classed("edit-button-path", true)
 	.attr("d","M -13 0 L 13 0 M 13 0 l -7 7 M 13 0 l -7 -7");
 
+var snapshotButton = d3.select("body")
+	.append("svg")
+	.attr("id", "snapshot-button-svg")
+	.classed("edit-button",true);
+snapshotButton.append("rect")
+	.classed("edit-button-rect", true)
+	.on("click", save_state);
+// snapshotButton.append("rect")
+// 	.classed("edit-button-path", true)
+// 	.attr({x:-12, y:-8.5, width:24, height:17, rx:1, ry:1});
+snapshotButton.append("circle")
+	.classed("edit-button-path", true)
+	.attr({cx:3.5, cy:0, r:5});
+snapshotButton.append("path")
+	.classed("edit-button-path", true)
+	.attr("d","M -7.5,-4 L -7.5,4");
+snapshotButton.append("path")
+	.classed("edit-button-path", true)
+	.attr("d","M -8,-9.5 L -7,-9.5");
+snapshotButton.append("path")
+	.classed("edit-button-path", true)
+	.attr("d","M -12,-8.5 L -12,8.5 L 12,8.5 L 12,-8.5 L 8,-8.5 L 6,-11 L 1,-11 L -1,-8.5 Z");
+
 var colors = ["magenta", "red", "orange", "yellow", "green", "cyan", "blue", "violet"];
 var colorstring = colors.join(" ");
 

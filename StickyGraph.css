@@ -227,8 +227,9 @@
 	#unpin-button-svg       { right: 90px; bottom: 10px; }
 	#TikZ-button-svg        { left:  10px; bottom: 130px; }
 	#label-button-svg       { left:  10px; bottom: 50px; }
-	#undo-button-svg        { bottom:10px; right: 50%; }
-	#redo-button-svg        { bottom:10px; left: 50%; }
+	#undo-button-svg        { bottom:10px; right: 50%; margin-right: 22.5px; }
+	#snapshot-button-svg    { bottom:10px; left:  50%; margin-left: -17.5px}
+	#redo-button-svg        { bottom:10px; left:  50%; margin-left : 22.5px; }
 	#no-color-button-svg    { right: 50px; top: 50px; }
 	#red-button-svg         { right: 90px; top: 10px; }
 	#orange-button-svg      { right: 50px; top: 10px; }
@@ -243,11 +244,11 @@
 
 /* very narrow window, so hope it is in portrait mode and put stuff on the bottom */
 @media (max-width: 450px) and (min-width: 365px) {
-	#multigraph-button-svg  { bottom: 50px; left: 50%; margin-left:  42.5px;}
+	#multigraph-button-svg  { bottom: 50px; left: 50%; margin-left:  17.5px;}
 	#add-v-button-svg       { bottom: 50px; left: 50%; margin-left: -177.5px; }
-	#add-e-button-svg       { bottom: 50px; left: 50%; margin-left: -137.5px; }
-	#delete-button-svg      { bottom: 50px; left: 50%; margin-left:  -97.5px; }
-	#contract-button-svg    { bottom: 50px; left: 50%; margin-left:  -57.5px; }
+	#add-e-button-svg       { bottom: 50px; left: 50%; margin-left: -142.5px; }
+	#delete-button-svg      { bottom: 50px; left: 50%; margin-left: -107.5px; }
+	#contract-button-svg    { bottom: 50px; left: 50%; margin-left:  -72.5px; }
 	#select-v-button-svg    { display: none; }
 	#select-e-button-svg    { display: none; }
 	#select-none-button-svg { display: none; }
@@ -255,8 +256,9 @@
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
 	#TikZ-div               { display: none; }
-	#label-button-svg       { bottom: 50px; left: 50%; margin-left:   2.5px; }
-	#undo-button-svg        { bottom: 50px; left: 50%; margin-left:  102.5px; }
+	#label-button-svg       { bottom: 50px; left: 50%; margin-left:  -17.5px; }
+	#undo-button-svg        { bottom: 50px; left: 50%; margin-left:   72.5px; }
+	#snapshot-button-svg    { bottom: 50px; left: 50%; margin-left:  107.5px; }
 	#redo-button-svg        { bottom: 50px; left: 50%; margin-left:  142.5px; }
 	#no-color-button-svg    { bottom: 10px; left: 50%; margin-left: -177.5px; }
 	#red-button-svg         { bottom: 10px; left: 50%; margin-left: -137.5px; }
@@ -271,7 +273,7 @@
 }
 
 @media (max-width: 364px) {
-	#multigraph-button-svg  { bottom: 35px; left: 50%; margin-left:   35.0px;}
+	#multigraph-button-svg  { bottom: 35px; left: 50%; margin-left:   17.5px;}
 	#add-v-button-svg       { bottom: 35px; left: 50%; margin-left: -157.5px; }
 	#add-e-button-svg       { bottom: 35px; left: 50%; margin-left: -122.5px; }
 	#delete-button-svg      { bottom: 35px; left: 50%; margin-left:  -87.5px; }
@@ -283,8 +285,9 @@
 	#unpin-button-svg       { display: none; }
 	#TikZ-button-svg        { display: none; }
 	#TikZ-div               { display: none; }
-	#label-button-svg       { bottom: 35px; left: 50%; margin-left:    0.0px; }
-	#undo-button-svg        { bottom: 35px; left: 50%; margin-left:   87.5px; }
+	#label-button-svg       { bottom: 35px; left: 50%; margin-left:  -17.5px; }
+	#undo-button-svg        { bottom: 35px; left: 50%; margin-left:   52.5px; }
+	#snapshot-button-svg    { bottom: 35px; left: 50%; margin-left:   87.5px; }
 	#redo-button-svg        { bottom: 35px; left: 50%; margin-left:  122.5px; }
 	#no-color-button-svg    { bottom:  0px; left: 50%; margin-left: -157.5px; }
 	#red-button-svg         { bottom:  0px; left: 50%; margin-left: -122.5px; }
