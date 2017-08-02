@@ -39,6 +39,8 @@ And again, if you choose to edit your graph in any way, StickyGraph will update 
 
 If you regret the changes you've made, StickyGraph has you covered with some **undo** and **redo** buttons.  Located at the bottom of the window, they have little arrows on them which respect the usual convention of undo = left and redo = right, though it's kind of arbitrary when you think about it.
 
+The state of the drawing is saved to the undo stack every time there is some structural change to the graph (but not for changes to the positioning or coloring).  If you'd like it to remember any other intermediate state, you can hit the camera button to add the current drawing to the undo stack.
+
 ### Labels and LaTeX Export
 
 Down in the bottom left corner of the window are four little buttons.  From bottom to top we have an interrobang, which takes you to this help page, a number sign which toggles the visibility of labels, a pair of edges toggling multigraph-mode, and the word Ti*k*Z, which displays code to draw the graph in LaTeX, exactly as it appears in StickyGraph.  It will position the vertices exactly how they are positioned within StickyGraph at the time that you clicked it (and of course, vertices and edges will be colored as you have colored them, edges bent as you have bent them, and labels will be included if you are displaying them).  Just press the button again to make it go away.  The generated LaTeX code requires the use of the wonderful graphics package Ti*k*Z, which you should probably have been using anyway.

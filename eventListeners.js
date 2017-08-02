@@ -745,3 +745,18 @@ function keydown_handler()
 		}
 	}
 }
+
+function snapshot()
+{
+	save_state();
+	d3.select("#snapshot-button")
+		.style({fill:"#0f0"})
+		.transition()
+		.style({fill:"#fff"})
+		.duration(400)
+		.each("end", function ()
+		{
+			d3.select(this)
+				.style("fill", null);
+		});
+}

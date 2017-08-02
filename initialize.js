@@ -236,7 +236,8 @@ var snapshotButton = d3.select("body")
 	.classed("edit-button",true);
 snapshotButton.append("rect")
 	.classed("edit-button-rect", true)
-	.on("click", save_state);
+	.attr("id", "snapshot-button")
+	.on("click", snapshot);
 // snapshotButton.append("rect")
 // 	.classed("edit-button-path", true)
 // 	.attr({x:-12, y:-8.5, width:24, height:17, rx:1, ry:1});
