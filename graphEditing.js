@@ -64,6 +64,77 @@ function delete_edge(d)
 	}
 }
 
+// identify vertices, preserving and potentially creating multi-edges
+// verts is an array of indices
+function identify_vertices(verts)
+{
+	if (verts.length == 0)
+		return;
+	var v2identified = [], nbr2edges = [];
+	v2identified.length = nbr2edges.length = nodes.length;
+	for (var i = 0; i < nodes.length; i++)
+		v2identified[i] = false, nbr2edges[i] = [];
+	for (var v of verts)
+		v2identified[v] = true;
+	var newvindex = verts.reduce(function (a,b) {return Math.min(a,b);});
+	var newv = nodes[newvindex];
+	// update edges
+	for (var i = links.length-1; i>=0; i--)
+	{
+		var l = links[i], otherEnd = null;
+		if (v2identified[l.source.index] && v2identified[l.target.index])
+		{
+			l.source = l.target = newv;
+		}
+		if (v2identified[l.source.index])
+		{
+			otherEnd = l.target.index;
+		}
+		else if (v2identified[l.target.index])
+		{
+			otherEnd = l.source.index;
+		}
+		if (otherEnd != null)
+		{
+			if ((otherEnd != newvindex && nbr2edges[otherEnd].length==0) || multigraph.classed("selected"))
+			{
+				l.copy = nbr2edges[otherEnd].length;
+				nbr2edges[otherEnd].push(l);
+				if (newvindex < otherEnd)
+					{ l.source = newv; l.target = nodes[otherEnd]; }
+				else (newvindex < otherEnd)
+					{ l.target = newv; l.source = nodes[otherEnd]; }
+			}
+			else
+				delete_edge(l);
+		}
+	}
+	for (var edgelist of nbr2edges)
+	{
+		for (var l of edgelist)
+		{
+			delete l.controlx; delete l.controly; // float the edges
+			l.copies = edgelist.length-1;
+		}
+	}
+	
+	var numContract = verts.length, sumx=0, sumy=0;
+	for (var v of verts)
+	{
+		sumx += nodes[v].x;
+		sumy += nodes[v].y;
+	}
+	nodes[newvindex].px = sumx/numContract;
+	nodes[newvindex].py = sumy/numContract;
+	nodes[newvindex].x = sumx/numContract;
+	nodes[newvindex].y = sumy/numContract;
+	
+	verts.sort(function (a,b) {return a-b;}); // sort the list
+	for (var i = verts.length-1; i > 0; i--) // go backwards, to avoid changing the indices as we delete the vertices, and skip the first one, which should be the resulting vertex
+		delete_vertex(nodes[verts[i]]);
+	return newv;
+}
+
 function contract_edge(d)
 {
 	if (links.indexOf(d) == -1) // the edge has already been deleted, for whatever reason
