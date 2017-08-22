@@ -22,7 +22,7 @@ Do you want those edges to be a little less straight?  Hey, no problem!  Just gr
 
 ### Selecting and Coloring
 
-If you hold `shift` while clicking vertex or edge (or just press and hold), you will select that feature.  You can then do useful things with that selection, like assigning them a color (by clicking on the appropriate color in the top right), or removing whatever colors they may presently be assigned (by clicking that black button).  If you hold `shift` while clicking a color button, it will instead select all vertices and edges that are currently assigned that color.  If you click a color button without anything selected, you will enter an "interactive" mode, in which you can paint colors on vertices or edges just by clicking them.
+If you hold `shift` while clicking on a vertex or edge (or just press and hold), you will select that feature.  You can then do useful things with that selection, like assigning them a color (by clicking on the appropriate color in the top right), or removing whatever colors they may presently be assigned (by clicking that black button).  If you hold `shift` while clicking a color button, it will instead select all vertices and edges that are currently assigned that color.  If you click a color button without anything selected, you will enter an "interactive" mode, in which you can paint colors on vertices or edges just by clicking them.
 
 There are also buttons to select all edges, all vertices, or de-select everything, located in the bottom right corner.
 
