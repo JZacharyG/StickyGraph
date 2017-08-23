@@ -10,6 +10,8 @@ var timeoutID;
 function drag_pin_drag_start(d)
 {
 	clearKeyMode();
+	document.getElementById("graph-input").blur();
+	document.getElementById("matrix-area").blur();
 	var v = d3.select(this);
 	selecting = d3.event.sourceEvent.shiftKey;
 	pinnedAtStart = v.classed("pinned");
@@ -90,6 +92,8 @@ var dragLink, newEdgeX, newEdgeY;
 var makingNewEdge = false;
 function new_edge_drag_start(d)
 {
+	document.getElementById("graph-input").blur();
+	document.getElementById("matrix-area").blur();
 	d.fixed |= 2;
 	newEdgeX = d.x, newEdgeY = d.y;
 	makingNewEdge = true;
