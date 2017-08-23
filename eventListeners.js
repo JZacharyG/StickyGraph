@@ -116,6 +116,8 @@ function new_edge_drag(d)
 
 function new_edge_drag_end(d1)
 {
+	d3.event.sourceEvent.preventDefault();
+	
 	d1.fixed &= 1;
 	makingNewEdge = false;
 	v2 = drawingBoard.selectAll(".node").filter(function (d2) {
@@ -126,7 +128,10 @@ function new_edge_drag_end(d1)
 		d2 = v2.datum();
 		save_state();
 		if (d2.id == d1.id)
-			multigraph.classed("selected", true);
+		{
+			if (!multigraph.classed("selected"))
+				return;
+		}
 		else if (!multigraph.classed("selected"))
 		{
 			for (l of links)
@@ -134,7 +139,7 @@ function new_edge_drag_end(d1)
 				if (l.source == d1 && l.target == d2 || l.source == d2 && l.target == d1)
 				{
 					multigraph.classed("selected", true);
-					break
+					break;
 				}
 			}
 		}
@@ -147,7 +152,6 @@ function new_edge_drag_end(d1)
 		write_graph();
 		force.start();
 	}
-	d3.event.sourceEvent.preventDefault();
 }
 
 var curveEdgeDrag = d3.behavior.drag()

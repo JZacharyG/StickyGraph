@@ -8,7 +8,7 @@ So, you have a graph that you'd like to draw.  Cool!  Direct your attention to t
 
 ### Multigraphs
 
-The button in the lower left with a pair of edges between two vertices toggles *multigraph mode*.  This tells StickyGraph whether to think of your graph as a simple graph or a multigraph (also known as a pseudo graph).  While in multigraph mode, for instance, identifying vertices or contracting edges can create loops and duplicate edges, while those would be discarded if working with a simple graph.  Switching from multigraph mode to simple graph mode will replace your graph with its underlying simple graph, and explicitly creating a multi-edge or loop will automatically put you into multigraph mode.
+The button in the lower left with a pair of edges between two vertices toggles *multigraph mode*.  This tells StickyGraph whether to think of your graph as a simple graph or a multigraph (also known as a pseudo graph).  While in multigraph mode, for instance, identifying vertices or contracting edges can create loops and duplicate edges, while those would be discarded if working with a simple graph.  Switching from multigraph mode to simple graph mode will replace your graph with its underlying simple graph, and explicitly creating a multi-edge will automatically put you into multigraph mode.
 
 Be forewarned, some graph input/output formats (like graph6) do not make sense for multigraphs, so they will always encode the underlying simple graph.
 
@@ -26,12 +26,12 @@ If you hold `shift` while clicking on a vertex or edge (or just press and hold),
 
 There are also buttons to select all edges, all vertices, or de-select everything, located in the bottom right corner.
 
-### Editing
+### Editing and Undoing
 
 Also down in the bottom right corner, there are buttons to add vertices, add edges, delete things, and contract edges/identify vertices.  These will mostly do what you would expect!  Let's take a look at them, from top to bottom.
 
 - If you select some vertices and/or edges, the **add vertex** button will split each of those edges, and if there are any selected vertices, it will add one new vertex adjacent to all of them.  It will add a new isolated vertex if you don't have anything selected.
-- The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.  You can create loops and multiple edges between the same pair of vertices.
+- The **add edge** button only has an interactive mode.  Give it a click, then drag edges between vertices.  You can create loops (while in multigraph mode) and multiple edges between the same pair of vertices.
 - The **delete button** will delete any selected vertices and edges, of course!  If you press it without selecting anything first, you enter an interactive mode in which you can click on things to delete them!
 - The **contract button** can do two slightly different things.  If you have only edges selected, it contracts all of them.  If you have only vertices selected, it will identify all of those vertices.  Don't try it if you have both vertices and edges selected.  I don't know what that should mean, so it doesn't mean anything.  If you don't have anything selected, then it will enter an interactive mode, where you can click edges to contract them.
 
